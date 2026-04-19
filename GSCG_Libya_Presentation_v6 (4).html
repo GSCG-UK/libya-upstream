@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>GSCG — Libya Upstream Advisory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Rajdhani:wght@300;400;500;600&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<style>
+:root{
+  --void:#05050a;--deep:#080810;--panel:#0c0c18;--card:#111120;
+  --edge:#1a1a2e;--wire:#252540;
+  --gold:#c8a84b;--gold2:#e8c96a;--gold3:#a07830;--goldpale:rgba(200,168,75,0.08);
+  --text:#e8e4d8;--muted:#9a9484;--dim:#5a5848;
+  --red:#8b1a1a;--green:#0d4a2a;--greenlit:#1a7a4a;
+  --serif:'Cormorant',Georgia,serif;--mono:'JetBrains Mono',monospace;--ui:'Rajdhani',sans-serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;overflow-x:hidden;background:var(--void);color:var(--text);font-family:var(--ui);width:100%;max-width:100%;-webkit-text-size-adjust:100%}
+/* grain overlay removed — caused iOS touch blocking */
+.deck{position:relative;width:100vw;height:100vh;overflow:hidden}
+/* deck scanline removed on mobile — pseudo-elements block iOS touch */
+
+/* ── TOPBAR ── */
+.topbar{position:fixed;top:0;left:0;right:0;height:54px;z-index:99999;background:rgba(5,5,10,0.99);border-bottom:1px solid var(--wire);display:flex;align-items:center;padding:0 28px;gap:18px}
+.tb-logo{display:flex;align-items:center;gap:10px;flex-shrink:0}
+.tb-sigil{width:36px;height:36px;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:14px;color:var(--gold);font-weight:600;position:relative}
+.tb-sigil::before{content:'';position:absolute;inset:-4px;border:1px solid rgba(200,168,75,0.18)}
+.tb-brand{font-family:var(--serif);font-size:17px;color:var(--text);font-weight:600;letter-spacing:0.04em}
+.tb-brand sup{font-size:9px;letter-spacing:0.2em;color:var(--gold);font-family:var(--ui)}
+.tb-sep{width:1px;height:30px;background:var(--wire);flex-shrink:0}
+.tb-nav{display:flex;gap:2px;flex:1;overflow:hidden}
+.tb-pill{background:none;border:none;padding:6px 10px;font-size:11px;font-weight:500;color:var(--muted);cursor:pointer;font-family:var(--ui);letter-spacing:0.09em;text-transform:uppercase;border-radius:2px;transition:color .2s,background .2s;white-space:nowrap}
+.tb-pill:hover{color:var(--text);background:rgba(255,255,255,0.04)}
+.tb-pill.on{color:var(--gold);background:rgba(200,168,75,0.09);border-bottom:1px solid var(--gold)}
+.tb-right{display:flex;align-items:center;gap:12px;flex-shrink:0}
+.tb-status{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase}
+.tb-pulse{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+.tb-ctr{font-size:11px;color:var(--dim);letter-spacing:0.06em;font-family:var(--mono)}
+.tb-btn{background:none;border:1px solid var(--wire);padding:6px 14px;font-size:11px;color:var(--muted);cursor:pointer;font-family:var(--ui);letter-spacing:0.08em;text-transform:uppercase;transition:all .2s}
+.tb-btn:hover{border-color:var(--gold3);color:var(--gold)}
+
+/* ── SLIDES ── */
+.slide{position:absolute;inset:0;padding:62px 0 44px;display:flex;flex-direction:column;opacity:0;transform:translateY(14px);transition:opacity .5s ease,transform .5s ease;pointer-events:none;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.slide.on{opacity:1;transform:translateY(0);pointer-events:none}
+.slide.on .s-inner{pointer-events:auto}
+.slide.on .conf-footer{pointer-events:auto}
+.slide.out{opacity:0;transform:translateY(-14px)}
+.s-inner{flex:1;padding:0 38px;display:flex;flex-direction:column;justify-content:center}
+
+/* ── CONFIDENTIALITY FOOTER ── */
+.conf-footer{flex-shrink:0;border-top:1px solid var(--wire);padding:7px 38px;display:flex;align-items:center;justify-content:space-between;gap:20px;background:rgba(5,5,10,0.7)}
+.cf-left{font-size:10px;font-weight:600;color:var(--gold);letter-spacing:0.14em;text-transform:uppercase;font-family:var(--mono)}
+.cf-right{font-size:9.5px;color:var(--dim);letter-spacing:0.06em;font-family:var(--mono);text-align:right;line-height:1.5}
+
+/* ── TYPOGRAPHY ── */
+.eyebrow{font-size:10px;letter-spacing:0.28em;text-transform:uppercase;color:var(--gold);display:flex;align-items:center;gap:10px;margin-bottom:13px;font-family:var(--mono)}
+.eyebrow::before{content:'//';color:var(--dim);margin-right:2px}
+.eyebrow::after{content:'';flex:0 0 44px;height:1px;background:linear-gradient(90deg,var(--gold3),transparent)}
+.h1{font-family:var(--serif);font-size:clamp(38px,5.2vw,68px);font-weight:300;line-height:1.04;letter-spacing:-0.01em}
+.h1 b{font-weight:700;color:var(--gold)}
+.h2{font-family:var(--serif);font-size:clamp(24px,3vw,40px);font-weight:400;line-height:1.1}
+.h2 b{font-weight:700}
+.body{font-size:14px;color:var(--muted);line-height:1.78;font-weight:400}
+.body b{color:var(--text);font-weight:500}
+
+/* ── GRID HELPERS ── */
+.two-col{display:grid;grid-template-columns:1fr 1.3fr;gap:36px;align-items:start}
+.two-col-eq{display:grid;grid-template-columns:1fr 1fr;gap:32px;align-items:start}
+
+/* ── PANEL ── */
+.pane{background:var(--panel);border:1px solid var(--wire);border-radius:3px;padding:20px}
+.pane-title{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);font-family:var(--mono);margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--wire)}
+
+/* ── STAT ── */
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+.stat{background:var(--card);border:1px solid var(--wire);padding:14px;text-align:center}
+.stat.hl{border-color:rgba(200,168,75,0.4)}
+.stat-n{font-family:var(--serif);font-size:32px;font-weight:300;color:var(--gold);line-height:1}
+.stat-l{font-size:10px;color:var(--muted);letter-spacing:0.11em;text-transform:uppercase;margin-top:4px;line-height:1.4;font-family:var(--mono)}
+
+/* ── PROGRESS ── */
+.progbar{position:fixed;bottom:0;left:0;height:2px;background:linear-gradient(90deg,var(--gold3),var(--gold),var(--gold2));transition:width .5s ease;z-index:99999}
+.dotrow{position:fixed;bottom:13px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:99999}
+.dot{width:5px;height:5px;border-radius:50%;background:var(--wire);border:none;cursor:pointer;transition:all .2s;padding:0}
+.dot.on{background:var(--gold);width:18px;border-radius:2px}
+
+/* ══════════ SLIDE 1 — TITLE ══════════ */
+.s1-bg{position:absolute;inset:0;overflow:hidden;pointer-events:none;background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(200,168,75,0.06) 0%,transparent 70%)}
+.s1-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(200,168,75,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(200,168,75,0.04) 1px,transparent 1px);background-size:50px 50px}
+.s1-corner{position:absolute;width:84px;height:84px;border-color:rgba(200,168,75,0.3);border-style:solid;border-width:0}
+.s1-corner.tl{top:62px;left:28px;border-top-width:1px;border-left-width:1px}
+.s1-corner.tr{top:62px;right:28px;border-top-width:1px;border-right-width:1px}
+.s1-corner.bl{bottom:44px;left:28px;border-bottom-width:1px;border-left-width:1px}
+.s1-corner.br{bottom:44px;right:28px;border-bottom-width:1px;border-right-width:1px}
+.s1-content{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;text-align:center;padding:0 20px}
+.s1-eyebrow{font-size:10px;letter-spacing:0.32em;color:var(--gold);text-transform:uppercase;margin-bottom:26px;font-family:var(--mono)}
+.s1-title{font-family:var(--serif);font-size:clamp(50px,7.5vw,88px);font-weight:300;line-height:1.02;letter-spacing:-0.02em;margin-bottom:14px}
+.s1-title b{font-weight:700;color:var(--gold)}
+.s1-sub{font-size:15px;color:var(--muted);letter-spacing:0.12em;text-transform:uppercase;font-family:var(--ui);margin-bottom:42px}
+.s1-rule{width:1px;height:50px;background:linear-gradient(var(--gold),transparent);margin:0 auto 42px}
+.s1-meta{display:flex;gap:44px;align-items:center}
+.s1-mi{text-align:center}
+.s1-ml{font-size:9px;letter-spacing:0.2em;color:var(--dim);text-transform:uppercase;font-family:var(--mono);margin-bottom:5px}
+.s1-mv{font-size:14px;color:var(--text);font-weight:500;font-family:var(--ui)}
+.s1-msep{width:1px;height:32px;background:var(--wire)}
+.s1-badge{margin-top:38px;display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(200,168,75,0.35);padding:9px 22px;font-size:10px;letter-spacing:0.17em;color:var(--gold);text-transform:uppercase;font-family:var(--mono)}
+
+/* ══════════ SLIDE 2 — LEAFLET MAP ══════════ */
+#mapSlide .s-inner{padding:8px 24px 4px;justify-content:flex-start}
+.map-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;padding:0 2px}
+.map-hud-title{font-size:10px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);font-family:var(--mono)}
+.map-tag{background:rgba(200,168,75,0.1);border:1px solid rgba(200,168,75,0.35);padding:4px 11px;font-size:9px;letter-spacing:0.13em;color:var(--gold);text-transform:uppercase;font-family:var(--mono)}
+#leafletMap{width:100%;height:calc(100vh - 200px);border:1px solid var(--wire);position:relative}
+.map-footer{display:flex;gap:14px;flex-wrap:wrap;margin-top:7px;padding:0 2px}
+.ml-item{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);font-family:var(--mono)}
+.ml-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.ml-dash{width:14px;height:7px;flex-shrink:0;border:1px dashed;opacity:.7}
+/* Override leaflet popup for dark theme */
+.leaflet-popup-content-wrapper{background:#0f0f1e;border:1px solid var(--wire);color:var(--text);border-radius:3px;box-shadow:0 4px 20px rgba(0,0,0,0.6)}
+.leaflet-popup-tip{background:#0f0f1e}
+.leaflet-popup-content{font-family:var(--ui);font-size:13px;line-height:1.6;margin:10px 14px}
+.leaflet-popup-content b{color:var(--gold);display:block;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:4px;font-family:var(--mono)}
+.lf-close-btn{color:var(--muted)!important}
+.leaflet-container{background:#07071a}
+
+/* ══════════ SLIDE 3 — INTEL ══════════ */
+.intel-list{display:flex;flex-direction:column;gap:8px}
+.inode{background:var(--card);border:1px solid var(--wire);border-left:2px solid var(--gold3);padding:13px 17px;cursor:pointer;transition:all .2s;position:relative;overflow:hidden}
+.inode::before{content:'';position:absolute;top:0;left:0;width:0;height:100%;background:rgba(200,168,75,0.04);transition:width .3s}
+.inode:hover::before,.inode.active::before{width:100%}
+.inode.active{border-left-color:var(--gold);background:var(--panel)}
+.inode.secret{border-left-color:#9f4040}
+.inode.secret.active{border-left-color:#cf6060}
+.inode-head{display:flex;align-items:center;gap:11px}
+.inode-ico{width:26px;height:26px;border:1px solid var(--wire);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;background:var(--panel)}
+.inode-title{font-size:13px;font-weight:600;letter-spacing:0.06em;color:var(--text);font-family:var(--ui)}
+.inode-body{font-size:12px;color:var(--muted);line-height:1.65;margin-top:9px;padding-left:37px;max-height:0;overflow:hidden;transition:max-height .35s ease,opacity .3s;opacity:0}
+.inode.active .inode-body{max-height:120px;opacity:1}
+.inode.secret .inode-title{color:#e08080}
+.net-svg-wrap{background:var(--panel);border:1px solid var(--wire);border-radius:3px;padding:14px;height:100%}
+.net-info{background:rgba(5,5,10,0.92);border:1px solid rgba(200,168,75,0.28);padding:9px 13px;font-size:11px;color:var(--gold);font-family:var(--mono);margin-top:10px;min-height:38px;transition:opacity .3s;line-height:1.55}
+
+/* ══════════ SLIDE 4 — BRIDGE ══════════ */
+.bridge-grid{display:flex;align-items:stretch;gap:0;margin:20px 0 0}
+.bnode{flex:1;background:var(--card);border:1px solid var(--wire);padding:16px}
+.bnode.hl{border-color:rgba(200,168,75,0.4);background:rgba(200,168,75,0.03)}
+.bnode-lbl{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);font-family:var(--mono);margin-bottom:7px}
+.bnode-title{font-family:var(--serif);font-size:17px;font-weight:600;margin-bottom:9px;line-height:1.2}
+.bnode-body{font-size:12px;color:var(--muted);line-height:1.65}
+.barrow{display:flex;align-items:center;padding:0 3px;color:var(--gold3);flex-shrink:0}
+.warn{background:rgba(139,26,26,0.1);border:1px solid rgba(139,26,26,0.3);padding:10px 13px;margin-top:10px}
+.warn p{font-size:11px;color:#c08090;line-height:1.6}
+.ok{background:rgba(13,74,42,0.15);border:1px solid rgba(26,122,74,0.35);padding:10px 13px;margin-top:8px}
+.ok p{font-size:11px;color:#7ec8a0;line-height:1.6}
+.htag{display:inline-block;background:rgba(200,168,75,0.08);border:1px solid rgba(200,168,75,0.25);padding:3px 10px;font-size:10px;color:var(--gold);font-family:var(--mono);letter-spacing:0.06em;margin:3px 3px 0 0}
+.tl-row{display:flex;margin-top:18px}
+.tl-item{flex:1;text-align:center;position:relative}
+.tl-item:not(:last-child)::after{content:'';position:absolute;top:12px;left:50%;right:-50%;height:1px;background:linear-gradient(90deg,var(--gold3),var(--wire))}
+.tl-dot{width:26px;height:26px;border:1px solid var(--gold);background:var(--void);margin:0 auto 7px;display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--gold);font-family:var(--mono);position:relative;z-index:1}
+.tl-week{font-size:8px;letter-spacing:0.12em;text-transform:uppercase;color:var(--gold3);font-family:var(--mono);margin-bottom:3px}
+.tl-lbl{font-size:10px;color:var(--dim);line-height:1.5;padding:0 3px}
+
+/* ══════════ SLIDE 5 — PARTNERS ══════════ */
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.pcard{background:var(--card);border:1px solid var(--wire);padding:14px;transition:border-color .2s;cursor:default;position:relative;overflow:hidden}
+.pcard::after{content:'';position:absolute;bottom:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold3),transparent);opacity:0;transition:opacity .3s}
+.pcard:hover{border-color:rgba(200,168,75,0.35)}
+.pcard:hover::after{opacity:1}
+.pc-flag{font-size:17px;margin-bottom:7px}
+.pc-country{font-size:10px;letter-spacing:0.17em;text-transform:uppercase;color:var(--gold);font-family:var(--mono);margin-bottom:5px}
+.pc-body{font-size:11.5px;color:var(--muted);line-height:1.6}
+.mbox{background:var(--panel);border:1px solid rgba(200,168,75,0.25);padding:17px;margin-top:12px}
+.mbox-title{font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);font-family:var(--mono);margin-bottom:11px}
+.mlist{display:flex;flex-direction:column;gap:9px}
+.mi{display:flex;align-items:flex-start;gap:9px;font-size:12px;color:var(--muted);line-height:1.55}
+.mi-chk{width:16px;height:16px;border:1px solid rgba(26,122,74,0.5);background:rgba(13,74,42,0.2);display:flex;align-items:center;justify-content:center;font-size:9px;color:#2ecc71;flex-shrink:0;margin-top:1px}
+.speed-badge{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(200,168,75,0.3);padding:6px 13px;font-size:10px;color:var(--gold);font-family:var(--mono);letter-spacing:0.08em;margin-top:13px}
+
+/* ══════════ SLIDE 6 — SPECIAL PROJECTS ══════════ */
+.sp-layout{display:grid;grid-template-columns:1.1fr 1fr;gap:28px;width:100%}
+.sp-header-badge{display:inline-flex;align-items:center;gap:9px;border:1px solid rgba(200,168,75,0.3);background:rgba(200,168,75,0.05);padding:7px 15px;font-size:10px;letter-spacing:0.17em;text-transform:uppercase;color:var(--gold);font-family:var(--mono);margin-bottom:16px}
+.sp-card{background:var(--card);border:1px solid var(--wire);padding:18px;margin-bottom:10px;position:relative;overflow:hidden}
+.sp-card::before{content:'';position:absolute;top:0;left:0;width:2px;height:100%;background:linear-gradient(180deg,var(--gold3),transparent)}
+.sp-card-title{font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text);font-family:var(--ui);margin-bottom:8px}
+.sp-card-body{font-size:12px;color:var(--muted);line-height:1.72}
+.sp-cap-grid{display:flex;flex-direction:column;gap:8px}
+.sp-cap{display:flex;align-items:flex-start;gap:11px;background:var(--card);border:1px solid var(--wire);padding:14px;position:relative}
+.sp-cap::before{content:'';position:absolute;top:0;left:0;width:2px;height:100%;background:var(--gold3)}
+.sp-cap-ico{font-size:15px;flex-shrink:0;width:26px;text-align:center}
+.sp-cap-title{font-size:11px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text);font-family:var(--ui);margin-bottom:4px}
+.sp-cap-body{font-size:11.5px;color:var(--muted);line-height:1.62}
+.sp-classified{background:rgba(139,26,26,0.06);border:1px solid rgba(139,26,26,0.2);padding:11px 15px;margin-top:10px;display:flex;align-items:center;gap:9px;font-size:10px;color:#9a7070;font-family:var(--mono);letter-spacing:0.07em}
+
+/* ══════════ SLIDE 7 — LEGAL COUNSEL (NEW) ══════════ */
+.legal-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:4px}
+.legal-card{background:var(--card);border:1px solid var(--wire);padding:20px;position:relative;overflow:hidden}
+.legal-card::before{content:'';position:absolute;top:0;left:0;width:100%;height:2px;background:linear-gradient(90deg,var(--gold3),transparent)}
+.legal-card-eyebrow{font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);font-family:var(--mono);margin-bottom:8px}
+.legal-card-title{font-family:var(--serif);font-size:17px;font-weight:600;line-height:1.2;color:var(--text);margin-bottom:12px}
+.legal-bullets{display:flex;flex-direction:column;gap:7px}
+.legal-b{display:flex;align-items:flex-start;gap:9px;font-size:12px;color:var(--muted);line-height:1.6}
+.legal-b-dot{width:4px;height:4px;border-radius:50%;background:var(--gold3);flex-shrink:0;margin-top:6px}
+.legal-nd-banner{background:rgba(200,168,75,0.05);border:1px solid rgba(200,168,75,0.2);padding:9px 16px;margin-top:14px;display:flex;align-items:center;gap:10px;font-size:10px;color:var(--dim);font-family:var(--mono);letter-spacing:0.1em}
+
+/* ══════════ SLIDE 8 — CREDENTIALS ══════════ */
+.badge-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.cbadge{background:var(--card);border:1px solid var(--wire);padding:18px;text-align:center;transition:all .2s;cursor:default}
+.cbadge:hover{border-color:rgba(200,168,75,0.4);background:var(--panel)}
+.cbadge.hl{border-color:rgba(200,168,75,0.35);background:rgba(200,168,75,0.03)}
+.cbadge-ring{width:46px;height:46px;border:1px solid var(--gold);margin:0 auto 11px;display:flex;align-items:center;justify-content:center;font-size:19px}
+.cbadge-title{font-size:13px;font-weight:600;letter-spacing:0.04em;color:var(--text);margin-bottom:4px;font-family:var(--ui)}
+.cbadge-sub{font-size:11px;color:var(--muted);line-height:1.5}
+.cbadge-tag{display:inline-block;background:rgba(200,168,75,0.08);color:var(--gold);font-size:8px;letter-spacing:0.14em;padding:2px 8px;margin-top:7px;text-transform:uppercase;font-family:var(--mono)}
+.prof-card{background:var(--panel);border:1px solid rgba(200,168,75,0.3);padding:19px}
+.prof-av{width:48px;height:48px;border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:17px;font-weight:600;color:var(--gold);margin-bottom:13px;background:rgba(200,168,75,0.06)}
+.prof-name{font-family:var(--serif);font-size:17px;font-weight:600;margin-bottom:2px}
+.prof-role{font-size:11px;color:var(--gold);letter-spacing:0.07em;font-family:var(--mono);margin-bottom:11px}
+.prof-attr{display:flex;align-items:flex-start;gap:8px;font-size:12px;color:var(--muted);margin-bottom:5px}
+.prof-dot{width:3px;height:3px;border-radius:50%;background:var(--gold3);flex-shrink:0;margin-top:6px}
+.comp-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:13px}
+.ctag{border:1px solid var(--wire);padding:3px 9px;font-size:9px;color:var(--dim);letter-spacing:0.1em;font-family:var(--mono)}
+
+/* ══════════ SLIDE 9 — MEDIA ══════════ */
+.pub-list{display:flex;flex-direction:column;gap:9px}
+.pub{background:var(--card);border:1px solid var(--wire);padding:13px 17px;display:flex;align-items:center;gap:15px;cursor:pointer;text-decoration:none;transition:border-color .2s,background .2s}
+.pub:hover{border-color:rgba(200,168,75,0.35);background:var(--panel)}
+.pub-logo{width:104px;height:42px;border:1px solid var(--wire);background:var(--panel);display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;position:relative;overflow:hidden}
+.pub-logo img{width:100%;height:100%;object-fit:contain}
+.pub-logo-fallback{font-size:8.5px;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);font-family:var(--mono);text-align:center;padding:2px}
+.pub-logo-label{position:absolute;bottom:0;left:0;right:0;font-size:6px;letter-spacing:0.05em;text-transform:uppercase;color:var(--dim);font-family:var(--mono);background:rgba(0,0,0,0.5);text-align:center;padding:2px}
+.pub-info{flex:1}
+.pub-topic{font-size:13px;color:var(--text);font-weight:600;margin-bottom:3px;font-family:var(--ui)}
+.pub-desc{font-size:11px;color:var(--muted);line-height:1.55}
+.approach-tag{display:inline-block;background:rgba(200,168,75,0.07);border:1px solid rgba(200,168,75,0.2);color:var(--gold);font-size:8px;letter-spacing:0.12em;padding:2px 8px;font-family:var(--mono);text-transform:uppercase;margin-bottom:4px}
+.pub-arr{font-size:14px;color:var(--gold3);flex-shrink:0}
+.logo-wall{background:var(--panel);border:1px solid var(--wire);padding:15px}
+.lw-title{font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);font-family:var(--mono);margin-bottom:12px}
+.lw-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.logo-ph{height:50px;border:1px solid var(--wire);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;position:relative;overflow:hidden;cursor:default;transition:border-color .2s}
+.logo-ph:hover{border-color:rgba(200,168,75,0.3)}
+.logo-ph img{width:80%;height:70%;object-fit:contain;filter:brightness(0) invert(.7)}
+.logo-ph-slot{font-size:9px;letter-spacing:0.09em;text-transform:uppercase;color:var(--dim);font-family:var(--mono)}
+.logo-ph-label{font-size:6.5px;letter-spacing:0.05em;text-transform:uppercase;color:var(--dim);font-family:var(--mono);opacity:.45}
+.cta-box{background:rgba(200,168,75,0.05);border:1px solid rgba(200,168,75,0.3);padding:18px;text-align:center;margin-top:12px}
+.cta-t{font-family:var(--serif);font-size:19px;font-weight:600;margin-bottom:6px}
+.cta-s{font-size:12px;color:var(--muted);margin-bottom:15px;line-height:1.6}
+.cta-btn{display:inline-block;background:var(--gold);color:var(--void);font-size:11px;font-weight:700;letter-spacing:0.13em;text-transform:uppercase;padding:10px 24px;cursor:pointer;border:none;font-family:var(--ui)}
+.cta-btn:hover{background:var(--gold2)}
+.cta-note{font-size:9px;color:var(--dim);margin-top:9px;font-family:var(--mono);letter-spacing:0.07em}
+
+/* ══════════ SLIDE — ENTRY STRATEGY ══════════ */
+.entry-slide-layout{display:grid;grid-template-columns:1fr 340px;gap:40px;align-items:start;width:100%}
+.entry-text h2{font-family:var(--serif);font-size:clamp(22px,2.6vw,34px);font-weight:600;color:var(--text);margin-bottom:18px;line-height:1.15}
+.entry-text h3{font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);font-family:var(--mono);margin:14px 0 6px}
+.entry-text p{font-size:13px;color:var(--muted);line-height:1.75}
+.entry-text p b{color:var(--text);font-weight:600}
+.entry-kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:20px 0}
+.entry-kpi{background:var(--card);border:1px solid var(--wire);padding:14px 12px;position:relative;overflow:hidden}
+.entry-kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold3),transparent)}
+.entry-kpi-label{font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--dim);font-family:var(--mono);margin-bottom:6px}
+.entry-kpi-value{font-family:var(--serif);font-size:22px;font-weight:300;color:var(--gold);line-height:1}
+.entry-kpi-sub{font-size:9px;color:var(--dim);font-family:var(--mono);margin-top:3px}
+.entry-timeline{display:flex;gap:0;margin:16px 0}
+.etl-item{flex:1;text-align:center;position:relative}
+.etl-item:not(:last-child)::after{content:'';position:absolute;top:12px;left:50%;right:-50%;height:1px;background:linear-gradient(90deg,var(--gold3),var(--wire))}
+.etl-dot{width:24px;height:24px;border:1px solid var(--gold);background:var(--void);margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--gold);font-family:var(--mono);position:relative;z-index:1}
+.etl-week{font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold3);font-family:var(--mono);margin-bottom:3px}
+.etl-lbl{font-size:9.5px;color:var(--dim);line-height:1.5;padding:0 3px}
+.mini-map-container{width:340px;height:260px;border:1px solid var(--wire);overflow:hidden;flex-shrink:0;position:relative}
+.mini-map-container::before{content:'// ENTRY ZONE MAP';position:absolute;top:8px;left:10px;z-index:10;font-size:8px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);font-family:var(--mono);pointer-events:none}
+.entry-footnote{font-size:0.78em;color:rgba(180,176,168,0.62);font-family:var(--mono);letter-spacing:0.04em;line-height:1.5;margin-top:16px;padding-top:10px;border-top:1px solid var(--wire);opacity:0.68}
+/* Map layer toggles */
+.map-toggles{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px;padding:0 2px}
+.map-toggle-btn{background:var(--card);border:1px solid var(--wire);padding:4px 11px;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);font-family:var(--mono);cursor:pointer;transition:all .2s}
+.map-toggle-btn:hover{border-color:var(--gold3);color:var(--gold)}
+.map-toggle-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(200,168,75,0.08)}
+/* Trading overlay panel */
+.trading-panel{position:absolute;top:8px;right:8px;z-index:1000;background:rgba(5,5,10,0.88);border:1px solid var(--wire);padding:10px 14px;font-family:var(--mono);font-size:10px;min-width:160px;backdrop-filter:blur(6px)}
+.tp-title{color:var(--gold);letter-spacing:0.12em;text-transform:uppercase;font-size:8.5px;margin-bottom:7px;border-bottom:1px solid var(--wire);padding-bottom:5px}
+.tp-row{display:flex;justify-content:space-between;gap:16px;color:var(--muted);margin-bottom:3px}
+.tp-row span:last-child{color:var(--text)}
+.tp-brent{font-size:13px;color:var(--gold2);font-weight:600;margin-bottom:6px}
+
+@media(max-width:800px){.entry-slide-layout{grid-template-columns:1fr}.mini-map-container{width:100%;height:180px}.entry-kpi-row{grid-template-columns:1fr 1fr}}
+
+/* ══════════════════════════════════════════
+   MOBILE / IPHONE FIXES — DO NOT REMOVE
+══════════════════════════════════════════ */
+
+/* Prevent any element from forcing horizontal scroll */
+*{max-width:100%;-webkit-tap-highlight-color:transparent}
+
+/* All buttons fully tappable */
+button,.tb-btn,.tb-pill,.nav-btn,.dot,.map-toggle-btn,.cta-btn{
+  pointer-events:auto!important;
+  touch-action:manipulation;
+  -webkit-tap-highlight-color:rgba(255,255,255,0.2);
+  cursor:pointer;
+  user-select:none;
+  -webkit-user-select:none;
+  z-index:9999;
+  position:relative;
+}
+/* iOS Safari requires cursor:pointer on non-anchor elements to fire touch events */
+#btn-prev, #btn-next { cursor: pointer; }
+/* Ensure scanline never blocks button taps */
+.map-scanline{
+  pointer-events:none!important;
+}
+
+/* Slide and deck never overflow */
+.deck,.slide,.s-inner{
+  width:100%;
+  max-width:100vw;
+  box-sizing:border-box;
+}
+
+/* Leaflet map container — allow touch pan/zoom but don't block buttons */
+#leafletMap{
+  touch-action:pan-x pan-y;
+}
+
+/* Deck scanline overlay — never block touch */
+.deck::before{pointer-events:none}
+
+/* Grain overlay — never block touch */
+body::before{pointer-events:none}
+
+/* Topbar — always on top and tappable */
+/* z-index and styles set in main topbar rule above */
+
+/* Progress bar and dot nav — z-index set in main rules above */
+.dot{
+  min-width:5px;
+  min-height:5px;
+  padding:6px;
+  margin:0;
+}
+.dot.on{width:18px}
+
+/* Confidentiality footer — safe area on iPhone X+ */
+.conf-footer{
+  padding-bottom:max(7px, env(safe-area-inset-bottom));
+}
+
+/* Font scaling — prevents iOS from auto-zooming inputs/text */
+body{font-size:clamp(14px,1.6vw,18px)}
+
+@media(max-width:600px){
+  /* Topbar: hide nav pills, keep logo + arrows */
+  .tb-nav{display:none}
+  .tb-sep{display:none}
+  .tb-status{display:none}
+  .topbar{padding:0 14px;gap:10px}
+  .tb-sigil{width:30px;height:30px;font-size:12px}
+  .tb-brand{font-size:14px}
+  .tb-btn{padding:8px 14px;font-size:12px;min-height:36px;min-width:36px}
+  .tb-ctr{font-size:10px;min-width:36px}
+
+  /* Slides: single column, scrollable */
+  .slide{padding:60px 0 56px;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .s-inner{padding:0 16px;justify-content:flex-start;padding-top:10px}
+
+  /* All two-column layouts collapse */
+  .two-col,.two-col-eq,.sp-layout,.legal-grid,
+  .entry-slide-layout,.bridge-grid{
+    grid-template-columns:1fr!important;
+    flex-direction:column;
+  }
+  .bridge-grid{display:flex;flex-direction:column;gap:8px}
+  .barrow{transform:rotate(90deg);align-self:center;margin:4px 0}
+
+  /* Stat rows: 2 col on small screens */
+  .stat-row,.entry-kpi-row{grid-template-columns:1fr 1fr}
+  .pgrid,.badge-grid,.lw-grid{grid-template-columns:1fr 1fr}
+  .tl-row,.entry-timeline{flex-wrap:wrap}
+  .tl-item,.etl-item{width:50%;margin-bottom:14px}
+  .tl-item::after,.etl-item::after{display:none}
+
+  /* Title slide: shrink meta row on small screens */
+  .s1-meta{flex-direction:column;gap:12px}
+  .s1-msep{display:none}
+  .s1-title{font-size:clamp(36px,10vw,56px)}
+  .s1-badge{font-size:9px;padding:8px 14px;text-align:center}
+
+  /* Map: let it breathe */
+  #leafletMap{height:calc(100vh - 240px);min-height:280px}
+  .map-footer{flex-wrap:wrap;gap:8px}
+  .map-toggles{flex-wrap:wrap}
+
+  /* Entry strategy mini map */
+  .mini-map-container{width:100%;height:200px}
+
+  /* Spider web: scale SVG down */
+  #netSvg{max-height:260px}
+  .net-svg-wrap{padding:10px}
+
+  /* Publication cards: stack logo on top */
+  .pub{flex-direction:column;align-items:flex-start;gap:10px}
+  .pub-logo{width:100%;height:36px}
+
+  /* Dot nav: larger tap targets */
+  .dotrow{bottom:16px;gap:8px}
+  .dot{padding:8px;border-radius:50%}
+  .dot.on{width:20px;border-radius:3px}
+
+  /* Conf footer */
+  .conf-footer{flex-direction:column;gap:4px;padding:8px 16px}
+  .cf-right{text-align:left}
+
+  /* Legal grid: single col */
+  .legal-grid{grid-template-columns:1fr!important}
+
+  /* Special projects */
+  .sp-cap{flex-direction:row;align-items:flex-start}
+}
+
+@media(max-width:380px){
+  /* Very small iPhones (SE) */
+  .s1-title{font-size:32px}
+  .pgrid,.badge-grid{grid-template-columns:1fr}
+  .stat-row,.entry-kpi-row{grid-template-columns:1fr}
+}
+
+/* ══════════════════════════════════════════
+   FONT SCALING — READABILITY FIX
+══════════════════════════════════════════ */
+html{font-size:clamp(15px,1.2vw,19px)}
+body{font-size:1rem;line-height:1.6}
+/* Prevent overflow */
+body:not(.leaflet-container) *{word-break:break-word;overflow-wrap:break-word}
+h1{font-size:2.8rem}
+h2{font-size:2.2rem}
+h3{font-size:1.7rem}
+p,li{font-size:1.15rem}
+button{font-size:1.1rem;padding:12px 20px}
+.leaflet-popup-content{font-size:1rem}
+/* Cap UI chrome so clamp base doesn't inflate fixed-height elements */
+.topbar,.conf-footer,.dotrow,.progbar{font-size:0.82rem}
+.tb-pill,.tb-btn,.tb-brand,.tb-ctr,.tb-status{font-size:0.78rem}
+.eyebrow,.pane-title,.section-eyebrow,.stat-l,.mbox-title,
+.map-hud-title,.map-tag,.map-toggle-btn,.net-info,
+.legal-card-eyebrow,.sp-header-badge,.sp-classified,
+.entry-kpi-label,.entry-kpi-sub,.etl-week,.tl-week,
+.cf-left,.cf-right,.approach-tag,.lw-title,
+.pub-logo-fallback,.pub-logo-label,.logo-ph-slot,.logo-ph-label{font-size:0.75rem}
+/* LOGO & MEDIA GRIDS */
+.logo-grid,.media-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(130px,1fr));
+  gap:24px;
+  align-items:center;
+  justify-items:center;
+  margin-top:24px;
+}
+.logo-grid img,.media-grid img{
+  width:auto;
+  height:50px;
+  max-width:140px;
+  object-fit:contain;
+  object-position:center;
+  display:block;
+  filter:brightness(0.95);
+  opacity:0.9;
+  transition:opacity .2s;
+}
+.logo-grid img:hover,.media-grid img:hover{opacity:1}
+.media-title{
+  margin-top:40px;
+  font-size:1.1rem;
+  text-align:center;
+  opacity:0.65;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  font-family:var(--mono);
+  color:var(--muted);
+}
+/* MAP SCANLINE */
+#leafletMap{position:relative;overflow:hidden}
+.map-scanline{
+  position:absolute;
+  top:0;left:-10%;
+  width:2px;height:100%;
+  pointer-events:none;
+  z-index:3;
+  background:rgba(0,255,180,0.25);
+  box-shadow:0 0 8px rgba(0,255,180,0.4);
+  animation:scanMove 10s linear infinite;
+}
+@keyframes scanMove{
+  0%{left:-10%;opacity:0}
+  10%{opacity:0.25}
+  90%{opacity:0.25}
+  100%{left:110%;opacity:0}
+}
+
+/* ── CLICKABLE LINK ── */
+.external-link{
+  color:inherit;
+  text-decoration:none;
+  border-bottom:1px solid rgba(200,168,75,0.4);
+  pointer-events:auto;
+  touch-action:manipulation;
+  transition:border-color .2s;
+}
+.external-link:hover{border-bottom-color:rgba(200,168,75,0.9)}
+/* ── CREDIBILITY SECTIONS ── */
+.credibility-section{margin-top:36px;text-align:center}
+.credibility-section h3{
+  font-size:1rem;
+  font-weight:400;
+  opacity:0.55;
+  margin-bottom:12px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  font-family:var(--mono);
+  color:var(--muted);
+  border:none;
+  background:none;
+}
+.credibility-list{
+  font-size:1.05rem;
+  letter-spacing:0.1em;
+  opacity:0.82;
+  color:var(--text);
+  font-family:var(--ui);
+  font-weight:400;
+  line-height:1.8;
+}
+/* Remove logo grid / media grid now replaced */
+.logo-grid,.media-grid{display:none!important}
+
+#dealroom-overlay{position:fixed;inset:0;background:radial-gradient(circle at 30% 20%,#111827,#020617 70%);display:flex;align-items:center;justify-content:center;z-index:999999;animation:fadeIn 0.6s ease}
+.dealroom-box{width:420px;padding:50px 40px;border-radius:14px;background:rgba(10,15,30,0.95);border:1px solid rgba(200,168,75,0.2);box-shadow:0 0 60px rgba(0,0,0,0.7);text-align:center}
+.dealroom-header h1{font-size:26px;margin-bottom:8px;color:#e5e7eb;font-family:var(--serif);font-weight:400}
+.dealroom-header p{font-size:14px;color:#9ca3af;margin-bottom:30px;font-family:var(--ui)}
+.dealroom-input input{width:100%;padding:12px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:#fff;margin-bottom:15px;font-size:14px;font-family:var(--ui);outline:none;box-sizing:border-box}
+.dealroom-input button{width:100%;padding:12px;border-radius:6px;border:1px solid rgba(200,168,75,0.4);background:rgba(200,168,75,0.1);color:#c8a84b;font-size:14px;font-family:var(--ui);cursor:pointer;letter-spacing:0.1em;text-transform:uppercase}
+.dealroom-input button:hover{background:rgba(200,168,75,0.2)}
+#error-msg{margin-top:12px;color:#f87171;font-size:13px;font-family:var(--mono)}
+.dealroom-footer{margin-top:30px;font-size:11px;color:#6b7280;font-family:var(--mono);letter-spacing:0.1em}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+
+@media(max-width:768px){
+  /* ── FONT SIZE ── */
+  html{font-size:18px!important}
+  .slide p,.slide li,.slide span,.slide div{font-size:1rem!important;line-height:1.6!important}
+  .slide h1{font-size:2.2rem!important}
+  .slide h2{font-size:1.8rem!important}
+  .slide h3{font-size:1.4rem!important}
+  /* ── SCROLL + HEADER FIX ── */
+  body{overflow-y:auto!important;height:auto!important;-webkit-overflow-scrolling:touch}
+  .slide{height:auto!important;min-height:100vh;overflow:visible!important;padding-top:80px!important;padding-bottom:40px!important}
+  img{max-width:100%;height:auto}
+  /* ── LEAFLET POPUP HORIZONTAL ── */
+  .leaflet-popup-content{column-count:1!important;display:block!important;white-space:normal!important;word-break:normal!important;overflow-wrap:break-word!important;writing-mode:horizontal-tb!important;max-width:320px!important;min-width:220px!important;padding:12px!important}
+  .leaflet-popup{max-width:320px!important}
+}
+.leaflet-popup-content-wrapper{max-width:320px!important}
+.leaflet-popup-content{max-height:300px;overflow-y:auto;padding:12px}
+
+/* ── LEAFLET POPUP FIX ── */
+.leaflet-popup-content-wrapper{max-width:320px!important;white-space:normal!important;word-break:normal!important}
+.leaflet-popup-content{white-space:normal!important;word-break:normal!important;overflow-wrap:break-word!important;line-height:1.4;max-width:300px;padding:12px;font-size:13px}
+.leaflet-popup{max-width:320px!important}
+.map-scanline{pointer-events:none!important}
+.slide a{position:relative;z-index:1}
+
+
+/* ══ FINAL FONT OVERRIDE ══ */
+html{font-size:18px!important}
+body{font-size:1rem!important}
+.slide p,.slide li,.slide span,.slide div{font-size:0.9rem!important;line-height:1.5!important}
+.slide h1{font-size:2.2rem!important}
+.slide h2{font-size:1.8rem!important}
+.slide h3{font-size:1.4rem!important}
+/* Exceptions: keep UI chrome readable at smaller sizes */
+.topbar *,.conf-footer *,.dotrow *,.progbar *,.dealroom-box *{font-size:inherit!important}
+.eyebrow,.pane-title,.stat-l,.map-tag,.map-hud-title,.map-toggle-btn,.tl-week,.etl-week,.cf-left,.cf-right,.tb-pill,.tb-btn,.tb-ctr,.tb-status,.legal-card-eyebrow,.sp-header-badge,.sp-classified,.entry-kpi-label,.entry-kpi-sub{font-size:0.72rem!important}
+.stat-n,.entry-kpi-value{font-size:1.6rem!important}
+
+/* ══ LEAFLET POPUP HORIZONTAL FIX ══ */
+.leaflet-popup-content *{white-space:normal!important;word-break:normal!important;overflow-wrap:break-word!important;writing-mode:horizontal-tb!important;column-count:unset!important;display:revert}
+.leaflet-popup-content{max-width:340px!important;min-width:220px!important;padding:14px!important;white-space:normal!important;word-break:normal!important}
+.leaflet-popup-content b{display:block;color:#c8a84b;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:4px;font-family:monospace}
+</style>
+</head>
+<body>
+<div id="dealroom-overlay">
+  <div class="dealroom-box">
+    <div class="dealroom-header">
+      <h1>Confidential Materials</h1>
+      <p>Restricted access — authorized parties only</p>
+    </div>
+    <div class="dealroom-input">
+      <input type="password" id="password-input" placeholder="Enter access password" />
+      <button onclick="checkPassword()">Access</button>
+    </div>
+    <div id="error-msg"></div>
+    <div class="dealroom-footer">
+      <span>GSCG · Strategic Advisory</span>
+    </div>
+  </div>
+</div>
+<div class="deck">
+
+<!-- ═══ TOPBAR ═══ -->
+<nav class="topbar">
+  <div class="tb-logo">
+    <div class="tb-sigil">GS</div>
+    <span class="tb-brand">GSCG <sup>ADVISORY</sup></span>
+  </div>
+  <div class="tb-sep"></div>
+  <div class="tb-nav" id="tbNav">
+    <button class="tb-pill on"  onclick="go(0)">Overview</button>
+    <button class="tb-pill"     onclick="go(1)">Market</button>
+    <button class="tb-pill"     onclick="go(2)">Strategy</button>
+    <button class="tb-pill"     onclick="go(3)">Intel</button>
+    <button class="tb-pill"     onclick="go(4)">Tripoli</button>
+    <button class="tb-pill"     onclick="go(5)">Access</button>
+    <button class="tb-pill"     onclick="go(6)">Co-Invest</button>
+    <button class="tb-pill"     onclick="go(7)">Mandates</button>
+    <button class="tb-pill"     onclick="go(8)">Credentials</button>
+    <button class="tb-pill"     onclick="go(9)">Media</button>
+  </div>
+  <div class="tb-right">
+    <div class="tb-status"><div class="tb-pulse"></div>Live · April 2026</div>
+    <div class="tb-sep"></div>
+    <span class="tb-ctr" id="ctr">01/10</span>
+    <button class="tb-btn" id="btn-prev" data-nav="prev">◀</button>
+    <button class="tb-btn" id="btn-next" data-nav="next">▶</button>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════
+     SLIDE 1 — TITLE
+════════════════════════════════════════ -->
+<div class="slide on" id="s0">
+  <div class="s1-bg"><div class="s1-grid"></div></div>
+  <div class="s1-corner tl"></div><div class="s1-corner tr"></div>
+  <div class="s1-corner bl"></div><div class="s1-corner br"></div>
+  <div class="s-inner">
+    <div class="s1-content">
+      <div class="s1-eyebrow">// CONFIDENTIAL ADVISORY · APRIL 2026 //</div>
+      <h1 class="s1-title">GSCG<br><b>Libya Upstream</b><br>Advisory</h1>
+      <p class="s1-sub">Grosvenor Square Consulting Group · London</p>
+      <div class="s1-rule"></div>
+      <div class="s1-meta">
+        <div class="s1-mi"><div class="s1-ml">Principal</div><div class="s1-mv">Juan Carlos Lascurain Grosvenor, CEO</div></div>
+        <div class="s1-msep"></div>
+        <div class="s1-mi"><div class="s1-ml">Headquarters</div><div class="s1-mv">London | Mexico City</div></div>
+        <div class="s1-msep"></div>
+        <div class="s1-mi"><div class="s1-ml">Contact</div><div class="s1-mv"><a href="https://www.gscg.co.uk" target="_blank" class="external-link">www.gscg.co.uk</a></div></div>
+      </div>
+      <div class="s1-badge"><div class="tb-pulse" style="margin:0"></div>&nbsp;ACTIVE MARKET ACCESS — LIBYA UPSTREAM — 2026</div>
+    </div>
+  </div>
+  <div class="conf-footer">
+    <div class="cf-left">⬛ Strictly Private &amp; Confidential</div>
+    <div class="cf-right">This document contains proprietary and sensitive information.<br>Unauthorized distribution or disclosure is strictly prohibited.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SLIDE 2 — LEAFLET MAP
+════════════════════════════════════════ -->
+<div class="slide" id="s1">
+  <div class="s-inner" style="padding:8px 24px 4px;justify-content:flex-start">
+    <div class="map-header">
+      <div>
+        <div class="eyebrow" style="margin-bottom:4px">Market Inflection · 2026</div>
+        <div style="display:flex;align-items:center;gap:16px">
+          <span style="font-family:var(--serif);font-size:clamp(18px,2.2vw,28px);font-weight:400">Libya's first licensing round in <b style="font-weight:700;color:var(--gold)">18 years</b> — 22 blocks across three major basins</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <div class="map-tag">● ACTIVE TENDER</div>
+        <div style="display:flex;gap:8px">
+          <div class="stat" style="padding:8px 14px;border-color:rgba(200,168,75,0.4)"><div class="stat-n" style="font-size:22px">22</div><div class="stat-l">Blocks</div></div>
+          <div class="stat" style="padding:8px 14px"><div class="stat-n" style="font-size:22px">18</div><div class="stat-l">Years</div></div>
+          <div class="stat" style="padding:8px 14px"><div class="stat-n" style="font-size:22px">90</div><div class="stat-l">Day window</div></div>
+        </div>
+      </div>
+    </div>
+    <div id="leafletMap"><div class="map-scanline"></div></div>
+    <div class="map-footer">
+      <div class="ml-item"><div class="ml-dot" style="background:rgba(0,194,255,0.7)"></div>Ghadames Basin</div>
+      <div class="ml-item"><div class="ml-dot" style="background:rgba(255,107,0,0.7)"></div>Murzuq Basin</div>
+      <div class="ml-item"><div class="ml-dot" style="background:rgba(0,255,136,0.7)"></div>Sirte Basin</div>
+      <div class="ml-item"><div class="ml-dash" style="color:var(--gold)"></div>Tender Block M1</div>
+      <div class="ml-item"><div class="ml-dot" style="background:#e03030"></div>Oil Fields</div>
+      <div class="ml-item"><div class="ml-dot" style="background:#e8c97a"></div>Cities</div>
+      <div class="ml-item"><div class="ml-dot" style="background:#00ffff"></div>Terminals</div>
+      <div class="ml-item"><div class="ml-dot" style="background:#ff9900"></div>Refineries</div>
+      <div class="ml-item"><div class="ml-dot" style="background:#ff00ff"></div>LNG</div>
+      <div class="ml-item"><div class="ml-dot" style="background:#ff2d55;border-radius:2px;width:14px;height:4px"></div>Pipelines</div>
+    </div>
+    <div class="map-toggles">
+      <span style="font-size:9px;color:var(--dim);font-family:var(--mono);letter-spacing:0.1em;text-transform:uppercase;line-height:26px">Layers:</span>
+      <button class="map-toggle-btn active" id="tog-blocks" onclick="toggleMapLayer('blocks-layer','tog-blocks')">Blocks</button>
+      <button class="map-toggle-btn active" id="tog-airports" onclick="toggleMapLayer('airports-layer','tog-airports')">Airports</button>
+      <button class="map-toggle-btn active" id="tog-pipelines" onclick="toggleMapLayer('pipelines-layer','tog-pipelines')">Pipelines</button>
+      <button class="map-toggle-btn active" id="tog-terminals" onclick="toggleMapLayer('terminals-layer','tog-terminals')">Terminals</button>
+    </div>
+  </div>
+  <div class="conf-footer">
+    <div class="cf-left">⬛ Strictly Private &amp; Confidential</div>
+    <div class="cf-right">This document contains proprietary and sensitive information.<br>Unauthorized distribution or disclosure is strictly prohibited.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SLIDE 2b — ENTRY STRATEGY (90-DAY PLAN)
+════════════════════════════════════════ -->
+<div class="slide" id="s1b">
+  <div class="s-inner" style="justify-content:flex-start;padding-top:10px">
+    <div class="eyebrow">Immediate Entry Strategy · Libya</div>
+    <div class="entry-slide-layout">
+      <div class="entry-text">
+        <h2>90-Day Execution Plan</h2>
+        <div class="entry-kpi-row">
+          <div class="entry-kpi">
+            <div class="entry-kpi-label">Deployment</div>
+            <div class="entry-kpi-value">$200–300M</div>
+            <div class="entry-kpi-sub">Capital + Dev + Tech</div>
+          </div>
+          <div class="entry-kpi">
+            <div class="entry-kpi-label">Projected Uplift</div>
+            <div class="entry-kpi-value">+20–40</div>
+            <div class="entry-kpi-sub">kbpd production</div>
+          </div>
+          <div class="entry-kpi">
+            <div class="entry-kpi-label">Revenue Basis</div>
+            <div class="entry-kpi-value">Brent</div>
+            <div class="entry-kpi-sub">Linked pricing</div>
+          </div>
+          <div class="entry-kpi">
+            <div class="entry-kpi-label">Entry Window</div>
+            <div class="entry-kpi-value">90</div>
+            <div class="entry-kpi-sub">Days to first close</div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px">
+          <div style="background:var(--card);border:1px solid var(--wire);border-top:2px solid #2ecc71;padding:12px">
+            <div style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:#2ecc71;font-family:var(--mono);margin-bottom:6px">// Primary</div>
+            <div style="font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:5px">Eastern Brownfield</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.6">Sirte basin assets with established production history and NOC-linked JV structures. Immediate uplift potential.</div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--wire);border-top:2px solid var(--gold3);padding:12px">
+            <div style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--gold);font-family:var(--mono);margin-bottom:6px">// Secondary</div>
+            <div style="font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:5px">Southern Basin</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.6">Sabha corridor development assets. Murzuq basin exposure via NOC southern development arm.</div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--wire);border-top:2px solid var(--gold-dim,#7a6230);padding:12px">
+            <div style="font-size:9px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);font-family:var(--mono);margin-bottom:6px">// Parallel</div>
+            <div style="font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:5px">Western Corridor</div>
+            <div style="font-size:11px;color:var(--muted);line-height:1.6">Ghadames basin entry via Zawiya infrastructure. Greenstream pipeline access for European offtake.</div>
+          </div>
+        </div>
+        <div class="entry-timeline">
+          <div class="etl-item"><div class="etl-dot">W1</div><div class="etl-week">Weeks 0–4</div><div class="etl-lbl">Due diligence &amp; field validation. NOC access initiated.</div></div>
+          <div class="etl-item"><div class="etl-dot">W2</div><div class="etl-week">Weeks 4–8</div><div class="etl-lbl">Deal structuring. Partner introductions. Term sheet.</div></div>
+          <div class="etl-item"><div class="etl-dot">W3</div><div class="etl-week">Weeks 8–12</div><div class="etl-lbl">Capital deployment. NOC approval. First close.</div></div>
+          <div class="etl-item"><div class="etl-dot">∞</div><div class="etl-week">Post-Close</div><div class="etl-lbl">Brent-linked revenue. Production ramp. Ongoing advisory.</div></div>
+        </div>
+        <div class="entry-footnote">All pricing and production figures are indicative and based on market-referenced assumptions for strategic evaluation purposes.</div>
+      </div>
+      <div>
+        <div class="mini-map-container" id="mini-map"></div>
+        <div style="background:var(--card);border:1px solid var(--wire);padding:12px;margin-top:8px">
+          <div class="pane-title" style="margin-bottom:8px">// BRENT REFERENCE PRICE</div>
+          <div id="brentDisplay" style="font-family:var(--serif);font-size:28px;font-weight:300;color:var(--gold);line-height:1">Loading...</div>
+          <div style="font-size:9px;color:var(--dim);font-family:var(--mono);margin-top:4px">USD/bbl · Indicative · Market-referenced</div>
+          <div style="margin-top:10px;display:flex;flex-direction:column;gap:4px" id="fieldPriceTable"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="conf-footer">
+    <div class="cf-left">⬛ Strictly Private &amp; Confidential</div>
+    <div class="cf-right">This document contains proprietary and sensitive information.<br>Unauthorized distribution or disclosure is strictly prohibited.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SLIDE 3 — INTEL (SPIDERWEB)
+════════════════════════════════════════ -->
+<div class="slide" id="s2">
+  <div class="s-inner">
+    <div class="two-col">
+      <div>
+        <div class="eyebrow">Operational Intelligence</div>
+        <h2 class="h2">Ground network in<br><b>every corridor</b></h2>
+        <p class="body" style="margin:12px 0 14px">Click each node to explore GSCG's active positioning across Libya's upstream architecture.</p>
+        <div class="intel-list" id="iList">
+          <div class="inode active" data-i="0" onclick="selNode(0)">
+            <div class="inode-head"><div class="inode-ico">🏛</div><div class="inode-title">Tripoli NOC Track</div></div>
+            <div class="inode-body">Active relationships with senior figures across the NOC, Ministry of Oil &amp; Gas, and subsidiary operators responsible for exploration and new partnership approval.</div>
+          </div>
+          <div class="inode" data-i="1" onclick="selNode(1)">
+            <div class="inode-head"><div class="inode-ico">🏜</div><div class="inode-title">Sabha Corridor</div></div>
+            <div class="inode-body">Ground-level contacts across service companies, NOC investment vehicles, and field operators — real-time pipeline intelligence on the southern tender.</div>
+          </div>
+          <div class="inode" data-i="2" onclick="selNode(2)">
+            <div class="inode-head"><div class="inode-ico">📍</div><div class="inode-title">Cyrenaica-Sirte Arc</div></div>
+            <div class="inode-body">Intelligence assets providing early visibility on block awards, operator movements, and competitive dynamics — before they reach the market.</div>
+          </div>
+          <div class="inode" data-i="3" onclick="selNode(3)">
+            <div class="inode-head"><div class="inode-ico">🌐</div><div class="inode-title">London Stakeholder Layer</div></div>
+            <div class="inode-body">Senior London-based figures who shape Libya's commercial architecture and oil sector policy — where the real deals are structured.</div>
+          </div>
+          <div class="inode" data-i="4" onclick="selNode(4)">
+            <div class="inode-head"><div class="inode-ico">⚡</div><div class="inode-title">GNU Political Intelligence</div></div>
+            <div class="inode-body">Direct access to Government of National Unity insiders — providing early-warning on policy shifts, NOC leadership changes, and sovereign risk.</div>
+          </div>
+          <div class="inode secret" data-i="5" onclick="selNode(5)">
+            <div class="inode-head"><div class="inode-ico">🔒</div><div class="inode-title">Operational Access (Disclosed Under NDA)</div></div>
+            <div class="inode-body">Investment &amp; Ownership: Libyan investment group with direct upstream exposure; NOC-linked development vehicle (Sabha region). Production: exposure to a major Sirte basin producing asset; participation in an NOC–IOC JV. Service Layer: operational services supporting Eni, TotalEnergies, Chevron, and Occidental Petroleum. Licensing: visibility into secondary NOC tender allocations across Sirte and western basins.</div>
+          </div>
+        </div>
+      </div>
+      <div class="net-svg-wrap">
+        <div class="pane-title">// NETWORK TOPOLOGY · REAL-TIME</div>
+        <svg id="netSvg" width="100%" viewBox="0 0 280 320" style="display:block;cursor:pointer">
+          <defs>
+            <filter id="ng"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="rg"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <!-- Lines from center to nodes -->
+          <line id="nl0" x1="140" y1="155" x2="70" y2="60" stroke="rgba(200,168,75,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+          <line id="nl1" x1="140" y1="155" x2="60" y2="245" stroke="rgba(200,168,75,0.25)" stroke-width="1" stroke-dasharray="4,3"/>
+          <line id="nl2" x1="140" y1="155" x2="220" y2="100" stroke="rgba(200,168,75,0.25)" stroke-width="1" stroke-dasharray="4,3"/>
+          <line id="nl3" x1="140" y1="155" x2="140" y2="28" stroke="rgba(138,128,112,0.25)" stroke-width="1" stroke-dasharray="4,3"/>
+          <line id="nl4" x1="140" y1="155" x2="218" y2="245" stroke="rgba(200,168,75,0.2)" stroke-width="1" stroke-dasharray="4,3"/>
+          <line id="nl5" x1="140" y1="155" x2="30" y2="160" stroke="rgba(180,60,60,0.35)" stroke-width="1.2" stroke-dasharray="3,3"/>
+          <line x1="140" y1="175" x2="140" y2="305" stroke="rgba(200,168,75,0.1)" stroke-width="0.8" stroke-dasharray="3,4"/>
+          <!-- Center GSCG -->
+          <circle cx="140" cy="155" r="24" fill="rgba(200,168,75,0.1)" stroke="#c9a84c" stroke-width="1.3" filter="url(#ng)"/>
+          <circle cx="140" cy="155" r="24" fill="none" stroke="rgba(200,168,75,0.07)" stroke-width="1"><animate attributeName="r" from="24" to="46" dur="3s" repeatCount="indefinite"/><animate attributeName="opacity" from="0.3" to="0" dur="3s" repeatCount="indefinite"/></circle>
+          <text x="140" y="152" text-anchor="middle" fill="#c9a84c" font-size="9.5" font-family="monospace" font-weight="bold">GSCG</text>
+          <text x="140" y="163" text-anchor="middle" fill="#7a6230" font-size="7.5" font-family="monospace">HUB</text>
+          <!-- Node 0: Tripoli -->
+          <g id="nn0" onclick="selNode(0)" style="cursor:pointer">
+            <circle cx="70" cy="60" r="19" fill="rgba(232,201,122,0.08)" stroke="#e8c97a" stroke-width="1"/>
+            <text x="70" y="57" text-anchor="middle" fill="#e8c97a" font-size="8" font-family="monospace" font-weight="bold">TRIPOLI</text>
+            <text x="70" y="68" text-anchor="middle" fill="#7a6230" font-size="7" font-family="monospace">NOC</text>
+          </g>
+          <!-- Node 1: Sabha -->
+          <g id="nn1" onclick="selNode(1)" style="cursor:pointer">
+            <circle cx="60" cy="245" r="17" fill="rgba(200,168,75,0.07)" stroke="rgba(200,168,75,0.4)" stroke-width="1"/>
+            <text x="60" y="242" text-anchor="middle" fill="#c9a84c" font-size="7.5" font-family="monospace" font-weight="bold">Sabha</text>
+            <text x="60" y="253" text-anchor="middle" fill="#7a6230" font-size="6.5" font-family="monospace">S.CORRIDOR</text>
+          </g>
+          <!-- Node 2: Sirte -->
+          <g id="nn2" onclick="selNode(2)" style="cursor:pointer">
+            <circle cx="220" cy="100" r="17" fill="rgba(200,168,75,0.07)" stroke="rgba(200,168,75,0.4)" stroke-width="1"/>
+            <text x="220" y="97" text-anchor="middle" fill="#c9a84c" font-size="7.5" font-family="monospace" font-weight="bold">SIRTE</text>
+            <text x="220" y="108" text-anchor="middle" fill="#7a6230" font-size="6.5" font-family="monospace">ARC</text>
+          </g>
+          <!-- Node 3: London -->
+          <g id="nn3" onclick="selNode(3)" style="cursor:pointer">
+            <circle cx="140" cy="28" r="17" fill="rgba(138,128,112,0.08)" stroke="#8a8474" stroke-width="1"/>
+            <text x="140" y="25" text-anchor="middle" fill="#8a8474" font-size="7.5" font-family="monospace" font-weight="bold">LONDON</text>
+            <text x="140" y="36" text-anchor="middle" fill="#5a5040" font-size="6.5" font-family="monospace">STAKEHOLDERS</text>
+          </g>
+          <!-- Node 4: GNU -->
+          <g id="nn4" onclick="selNode(4)" style="cursor:pointer">
+            <circle cx="218" cy="245" r="17" fill="rgba(200,168,75,0.06)" stroke="rgba(200,168,75,0.28)" stroke-width="1"/>
+            <text x="218" y="242" text-anchor="middle" fill="#8a8474" font-size="7.5" font-family="monospace" font-weight="bold">GNU</text>
+            <text x="218" y="253" text-anchor="middle" fill="#5a5040" font-size="6.5" font-family="monospace">POLITICAL</text>
+          </g>
+          <!-- Node 5: Disclosed Under NDA (SECRET — red tint) -->
+          <g id="nn5" onclick="selNode(5)" style="cursor:pointer">
+            <circle cx="30" cy="160" r="20" fill="rgba(160,50,50,0.1)" stroke="#cf6060" stroke-width="1.2" filter="url(#rg)"/>
+            <circle cx="30" cy="160" r="20" fill="none" stroke="rgba(180,60,60,0.12)" stroke-width="1"><animate attributeName="r" from="20" to="38" dur="4s" repeatCount="indefinite"/><animate attributeName="opacity" from="0.4" to="0" dur="4s" repeatCount="indefinite"/></circle>
+            <text x="30" y="157" text-anchor="middle" fill="#cf6060" font-size="7" font-family="monospace" font-weight="bold">OPS</text>
+            <text x="30" y="167" text-anchor="middle" fill="#8a4040" font-size="6" font-family="monospace">N-DISC.</text>
+          </g>
+          <!-- Ministry sub-node -->
+          <circle cx="140" cy="308" r="13" fill="rgba(200,168,75,0.04)" stroke="rgba(200,168,75,0.15)" stroke-width="0.8"/>
+          <text x="140" y="306" text-anchor="middle" fill="#4a4840" font-size="6.5" font-family="monospace">MIN.</text>
+          <text x="140" y="315" text-anchor="middle" fill="#3a3830" font-size="6" font-family="monospace">OIL&amp;GAS</text>
+        </svg>
+        <div class="net-info" id="netInfo">Select a node to view intelligence detail.</div>
+      </div>
+    </div>
+
+    <div style="background:rgba(200,168,75,0.06);border:1px solid rgba(200,168,75,0.35);border-left:3px solid var(--gold);padding:16px 20px;margin-top:18px">
+      <div style="font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);font-family:var(--mono);margin-bottom:7px">// CONFIRMED LONDON ENGAGEMENT — MAY 2026</div>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7">GSCG is actively coordinating a closed-door session in London with expected participation from a senior Libyan ministerial contact, the NOC Murzuq office, a senior adviser to the Libyan government, and selected in-country operational partners. Additional institutional capital allocators, upstream operators, and technical service providers are being selectively onboarded.</p>
+    </div>
+  </div>
+  <div class="conf-footer">
+    <div class="cf-left">⬛ Strictly Private &amp; Confidential</div>
+    <div class="cf-right">This document contains proprietary and sensitive information.<br>Unauthorized distribution or disclosure is strictly prohibited.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SLIDE 4 — TRIPOLI TRACK
+════════════════════════════════════════ -->
+<div class="slide" id="s3">
+  <div class="s-inner">
+    <div class="eyebrow">The Tripoli Track · Legitimate Access at Every Level</div>
+    <h2 class="h2" style="margin-bottom:20px">GSCG maintains <b>three independent channels</b><br>into Libya's legitimate upstream architecture</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+      <div class="legal-card">
+        <div class="legal-card-eyebrow">// Diplomatic Channel</div>
+        <div class="legal-card-title">Libyan Ambassador Access</div>
+        <div class="legal-bullets">
+          <div class="legal-b"><div class="legal-b-dot"></div><div>GSCG maintains an active relationship with the Libyan Ambassador, providing a direct institutional channel to the GNU-recognized government and Ministry of Oil leadership in Tripoli.</div></div>
+        </div>
+      </div>
+      <div class="legal-card">
+        <div class="legal-card-eyebrow">// Institutional Channel</div>
+        <div class="legal-card-title">Former Senior OPEC Official</div>
+        <div class="legal-bullets">
+          <div class="legal-b"><div class="legal-b-dot"></div><div>GSCG's network includes a former senior OPEC official with longstanding relationships across Libya's NOC institutional structure and active engagement with current NOC leadership.</div></div>
+        </div>
+      </div>
+      <div class="legal-card">
+        <div class="legal-card-eyebrow">// Operator Channel</div>
+        <div class="legal-card-title">Ground-Level Operator Intelligence</div>
+        <div class="legal-bullets">
+          <div class="legal-b"><div class="legal-b-dot"></div><div>Active relationships with existing operators on the ground in Libya across the Sirte and Murzuq basins, providing real-time commercial and field-level intelligence unavailable through conventional channels.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="tl-row" style="margin-top:24px">
+      <div class="tl-item"><div class="tl-dot">01</div><div class="tl-week">Wks 1-2</div><div class="tl-lbl">Activate NOC contacts · identify strategic partners</div></div>
+      <div class="tl-item"><div class="tl-dot">02</div><div class="tl-week">Wks 2-4</div><div class="tl-lbl">Southern field tender briefing · block specs · bidder intelligence</div></div>
+      <div class="tl-item"><div class="tl-dot">03</div><div class="tl-week">Mo 1-2</div><div class="tl-lbl">Facilitated introductions to strategic partners &amp; NOC vehicles</div></div>
+      <div class="tl-item"><div class="tl-dot">04</div><div class="tl-week">Mo 2-3</div><div class="tl-lbl">Weekly geopolitical briefings · NOC leadership · political dynamics</div></div>
+      <div class="tl-item"><div class="tl-dot">∞</div><div class="tl-week">Ongoing</div><div class="tl-lbl">London session access · Ministerial engagement confirmed May 2026</div></div>
+    </div>
+  </div>
+  <div class="conf-footer">
+    <div class="cf-left">⬛ Strictly Private &amp; Confidential</div>
+    <div class="cf-right">This document contains proprietary and sensitive information.<br>Unauthorized distribution or disclosure is strictly prohibited.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SLIDE 5 — IN-COUNTRY STRATEGIC ACCESS
+════════════════════════════════════════ -->
+<div class="slide" id="s4">
+  <div class="s-inner" style="justify-content:flex-start;padding-top:12px">
+    <div class="eyebrow">In-Country Strategic Access · Disclosed Under NDA</div>
+    <h2 class="h2" style="margin-bottom:16px">Libya — <b>Operational Access</b><br>at Every Level of the Value Chain</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="legal-card">
+          <div class="legal-card-eyebrow">// Investment &amp; Ownership Access</div>
+          <div class="legal-card-title" style="font-size:15px">Field-Level Stakeholder Access</div>
+          <div class="legal-bullets">
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Direct access to a Libyan investment group with upstream exposure</div></div>
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Co-investment capability alongside field-level stakeholders</div></div>
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Exposure to ownership structures linked to producing assets</div></div>
+          </div>
+        </div>
+        <div class="legal-card">
+          <div class="legal-card-eyebrow">// NOC-Linked Development Channels</div>
+          <div class="legal-card-title" style="font-size:15px">Southern Development Arm</div>
+          <div class="legal-bullets">
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Access to the NOC's southern development arm (Sabha corridor)</div></div>
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Visibility into infrastructure and field expansion initiatives</div></div>
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Participation pathways in regional development programs</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="legal-card">
+          <div class="legal-card-eyebrow">// Operating &amp; Production Assets</div>
+          <div class="legal-card-title" style="font-size:15px">Producing Asset Exposure</div>
+          <div class="legal-bullets">
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Access to producing assets within the Sirte basin system</div></div>
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Exposure to NOC-operated and joint venture production environments</div></div>
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Connectivity to entities historically linked to legacy operators</div></div>
+          </div>
+        </div>
+        <div class="legal-card">
+          <div class="legal-card-eyebrow">// Oilfield Services Platform</div>
+          <div class="legal-card-title" style="font-size:15px">Operator Service Integration</div>
+          <div class="legal-bullets">
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Operational integration with service providers supporting:</div></div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;padding-left:13px">
+            <span class="ctag" style="border-color:rgba(200,168,75,0.3);color:var(--gold)">Chevron</span>
+            <span class="ctag" style="border-color:rgba(200,168,75,0.3);color:var(--gold)">Occidental</span>
+            <span class="ctag" style="border-color:rgba(200,168,75,0.3);color:var(--gold)">Eni</span>
+            <span class="ctag" style="border-color:rgba(200,168,75,0.3);color:var(--gold)">TotalEnergies</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="legal-card">
+          <div class="legal-card-eyebrow">// Engineering &amp; Technical Capability</div>
+          <div class="legal-card-title" style="font-size:15px">NOC Technical Execution Arms</div>
+          <div class="legal-bullets">
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Access to NOC-affiliated engineering and technical execution arms</div></div>
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Capability across field services, maintenance, and production optimization</div></div>
+          </div>
+        </div>
+        <div class="legal-card">
+          <div class="legal-card-eyebrow">// Licensing &amp; Tender Access</div>
+          <div class="legal-card-title" style="font-size:15px">Secondary Tender Visibility</div>
+          <div class="legal-bullets">
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Direct visibility into smaller NOC-issued tenders</div></div>
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Active positioning across Sirte and western basin licensing rounds</div></div>
+          </div>
+        </div>
+        <div class="legal-card">
+          <div class="legal-card-eyebrow">// Ministerial &amp; NOC London Engagement</div>
+          <div class="legal-card-title" style="font-size:15px">London Confirmed — May 2026</div>
+          <div class="legal-bullets">
+            <div class="legal-b"><div class="legal-b-dot"></div><div>Direct access to Libyan ministerial contacts and the NOC Murzuq office, with London-based engagement confirmed for May 2026.</div></div>
+          </div>
+        </div>
+        <div class="sp-classified" style="margin-top:2px">
+          <span>⬛</span>
+          Full structure and partner identities disclosed under NDA to qualifying counterparties.
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="conf-footer">
+    <div class="cf-left">⬛ Strictly Private &amp; Confidential</div>
+    <div class="cf-right">This document contains proprietary and sensitive information.<br>Unauthorized distribution or disclosure is strictly prohibited.</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════
+     SLIDE — CO-INVESTMENT CAPABILITY
+════════════════════════════════════════ -->
+<div class="slide" id="s-coinvest">
+  <div class="s-inner" style="justify-content:flex-start;padding-top:12px">
+    <div class="eyebrow">Capital Structure · Co-Investment Layer</div>
+    <h2 class="h2" style="margin-bottom:16px">Primary Operator + <b>Co-Investment Layer</b></h2>
+    <p class="body" style="margin-bottom:20px">Where required, GSCG can introduce qualifying co-investment capital alongside the primary operator to optimize deployment and distribute risk across the capital stack.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px">
+      <div class="legal-card">
+        <div class="legal-card-eyebrow">// Energy-Focused Funds</div>
+        <div class="legal-card-title" style="font-size:15px">Direct Fund Access</div>
+        <div class="legal-bullets">
+          <div class="legal-b"><div class="legal-b-dot"></div><div>A BVI-domiciled energy fund with direct upstream exposure</div></div>
+          <div class="legal-b"><div class="legal-b-dot"></div><div>A European fund-of-funds with emerging market energy allocation</div></div>
+        </div>
+      </div>
+      <div class="legal-card">
+        <div class="legal-card-eyebrow">// Family Offices &amp; HNWI</div>
+        <div class="legal-card-title" style="font-size:15px">Private Capital</div>
+        <div class="legal-bullets">
+          <div class="legal-b"><div class="legal-b-dot"></div><div>Direct access to HNWI capital with appetite for frontier market energy participation</div></div>
+          <div class="legal-b"><div class="legal-b-dot"></div><div>PE platforms with demonstrated energy sector deployment</div></div>
+        </div>
+      </div>
+      <div class="legal-card">
+        <div class="legal-card-eyebrow">// Sovereign-Adjacent Capital</div>
+        <div class="legal-card-title" style="font-size:15px">MENA &amp; LatAm SWF Access</div>
+        <div class="legal-bullets">
+          <div class="legal-b"><div class="legal-b-dot"></div><div>Introductory access to sovereign wealth-linked vehicles across the GCC</div></div>
+        </div>
+      </div>
+      <div class="legal-card">
+        <div class="legal-card-eyebrow">// Track Record</div>
+        <div class="legal-card-title" style="font-size:15px">Capital Formation</div>
+        <div class="legal-bullets">
+          <div class="legal-b"><div class="legal-b-dot"></div><div>Relationships with capital advisors with a demonstrated track record of energy project capital formation including transactions exceeding $1B in aggregate</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sp-classified">
+      <span>⬛</span>
+      Co-investment structured as parallel participation. Capital introduction mandate governed by separate agreement.
+    </div>
+  </div>
+  <div class="conf-footer">
+    <div class="cf-left">⬛ Strictly Private &amp; Confidential</div>
+    <div class="cf-right">This document contains proprietary and sensitive information.<br>Unauthorized distribution or disclosure is strictly prohibited.</div>
+  </div>
+</div>
+
+
+
+<!-- ════════════════════════════════════════
+     SLIDE — TRACK RECORD & ACTIVE MANDATES
+════════════════════════════════════════ -->
+<div class="slide" id="s-mandates">
+  <div class="s-inner" style="justify-content:flex-start;padding-top:12px">
+    <div class="eyebrow">Active Mandates · Market Entry Track Record</div>
+    <h2 class="h2" style="margin-bottom:20px"><b>Executed mandates</b> across four markets</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      <div class="legal-card">
+        <div class="legal-card-eyebrow">// Hospitality | Iraq · Libya · Syria</div>
+        <div class="legal-card-title">Top-Five Global Hospitality Group</div>
+        <div class="legal-bullets">
+          <div class="legal-b"><div class="legal-b-dot"></div><div>Formally mandated to facilitate market entry across three conflict-adjacent sovereign markets. Mandate letter executed. Active engagement with government and commercial counterparties across all three jurisdictions.</div></div>
+        </div>
+      </div>
+      <div class="legal-card">
+        <div class="legal-card-eyebrow">// Hospitality &amp; Sovereign Capital | Saudi Arabia</div>
+        <div class="legal-card-title">KSA Development &amp; Investment</div>
+        <div class="legal-bullets">
+          <div class="legal-b"><div class="legal-b-dot"></div><div>Active engagement with sovereign wealth, municipal stakeholders, and a major international hospitality group on hotel development and investment structuring in the Kingdom of Saudi Arabia.</div></div>
+        </div>
+      </div>
+      <div class="legal-card">
+        <div class="legal-card-eyebrow">// Energy | United Arab Emirates</div>
+        <div class="legal-card-title">US Energy Fund Introduction</div>
+        <div class="legal-bullets">
+          <div class="legal-b"><div class="legal-b-dot"></div><div>Successfully introduced a US-based energy fund to qualifying UAE commercial partners. Partnership viability assessment currently underway.</div></div>
+        </div>
+      </div>
+      <div class="legal-card">
+        <div class="legal-card-eyebrow">// FMCG | Brazil</div>
+        <div class="legal-card-title">Global Confectionery Group</div>
+        <div class="legal-bullets">
+          <div class="legal-b"><div class="legal-b-dot"></div><div>Successfully facilitated market entry advisory for a leading global confectionery group exploring Brazilian agricultural commodity sourcing. Introduction completed. Principal meeting confirmed summer 2026.</div></div>
+        </div>
+      </div>
+    </div>
+    <div class="sp-classified" style="margin-top:14px">
+      <span>⬛</span>
+      All mandates conducted on a confidential basis.
+    </div>
+  </div>
+  <div class="conf-footer">
+    <div class="cf-left">⬛ Strictly Private &amp; Confidential</div>
+    <div class="cf-right">This document contains proprietary and sensitive information.<br>Unauthorized distribution or disclosure is strictly prohibited.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SLIDE — CREDENTIALS
+════════════════════════════════════════ -->
+<div class="slide" id="s7">
+  <div class="s-inner">
+    <div class="two-col-eq">
+      <div>
+        <div class="eyebrow">Global Credentials</div>
+        <h2 class="h2" style="margin-bottom:16px">Recognized authority<br>across <b>every domain</b></h2>
+        <div class="badge-grid">
+          <div class="cbadge hl"><div class="cbadge-ring">🌍</div><div class="cbadge-title">MENA &amp; LatAm Specialist</div><div class="cbadge-sub">Active mandates across Libya, Saudi Arabia, Iraq, UAE &amp; Brazil</div><div class="cbadge-tag">Regional Authority</div></div>
+          <div class="cbadge hl"><div class="cbadge-ring">🌐</div><div class="cbadge-title">Geopolitical Economist</div><div class="cbadge-sub">MENA · Energy · Capital Markets</div><div class="cbadge-tag">Primary Analyst</div></div>
+          <div class="cbadge"><div class="cbadge-ring">🏦</div><div class="cbadge-title">International Banker</div><div class="cbadge-sub">Emerging market investment &amp; capital structuring</div><div class="cbadge-tag">Finance</div></div>
+          <div class="cbadge"><div class="cbadge-ring">🛡</div><div class="cbadge-title">Compliance-First</div><div class="cbadge-sub">FCPA · UK Bribery Act · OFAC · ICC</div><div class="cbadge-tag">Regulatory</div></div>
+        </div>
+        <div class="comp-tags"><span class="ctag">FCPA</span><span class="ctag">UK Bribery Act</span><span class="ctag">OFAC</span><span class="ctag">ICC Arbitration</span><span class="ctag">NDA-Governed</span></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <div class="prof-card">
+          <div class="prof-av">JC</div>
+          <div class="prof-name">Juan Carlos Lascurain Grosvenor</div>
+          <div class="prof-role">// CEO · GROSVENOR SQUARE CONSULTING GROUP</div>
+          <div style="margin-top:11px">
+            <div class="prof-attr"><div class="prof-dot"></div>Geopolitical Economist &amp; International Banker</div>
+            <div class="prof-attr"><div class="prof-dot"></div>Based in London | Mexico City — active across MENA &amp; Latin America</div>
+            <div class="prof-attr"><div class="prof-dot"></div>Approached by Forbes, Washington Examiner, Epoch Times &amp; Benzinga for expert commentary</div>
+            <div class="prof-attr"><div class="prof-dot"></div>Active coverage: Iran, Gulf states, Libya, Saudi Arabia, Iraq</div>
+            <div class="prof-attr"><div class="prof-dot"></div>Crisis management &amp; political transition specialist</div>
+            <div class="prof-attr"><div class="prof-dot"></div>Arctic strategy &amp; US-China-Russia competition analyst</div>
+          </div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--wire);padding:15px">
+          <div style="font-size:9px;letter-spacing:0.17em;text-transform:uppercase;color:var(--gold);font-family:var(--mono);margin-bottom:7px">// FIRM</div>
+          <div style="font-family:var(--serif);font-size:16px;font-weight:600;margin-bottom:3px">Grosvenor Square Consulting Group</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:7px">London | Mexico City</div>
+          <div style="font-size:13px;color:var(--gold);font-family:var(--mono)"><a href="https://www.gscg.co.uk" target="_blank" class="external-link" style="color:var(--gold)">www.gscg.co.uk</a></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="conf-footer">
+    <div class="cf-left">⬛ Strictly Private &amp; Confidential</div>
+    <div class="cf-right">This document contains proprietary and sensitive information.<br>Unauthorized distribution or disclosure is strictly prohibited.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     SLIDE 9 — MEDIA / VOICE
+════════════════════════════════════════ -->
+<div class="slide" id="s8">
+  <div class="s-inner">
+    <div class="two-col">
+      <div>
+        <div class="eyebrow">Voice of Authority · Media Presence</div>
+        <h2 class="h2" style="margin-bottom:10px">Approached by the<br><b>world's leading media</b></h2>
+        <p class="body" style="margin-bottom:15px">Juan Carlos Lascurain Grosvenor is regularly approached by leading international publications for expert commentary on geopolitics, energy, and capital markets.</p>
+        <div class="credibility-section" style="margin-top:0">
+          <h3>Media Coverage &amp; Commentary</h3>
+          <div class="credibility-list">
+            <a href="https://www.washingtonexaminer.com/premium/4478983/iran-ali-khamenei-democracy-transition/" target="_blank" class="external-link">Washington Examiner</a>
+            &nbsp;•&nbsp;
+            <a href="https://www.forbes.com/sites/edwardsegal/2022/10/22/early-crisis-management-lessons-from-the-rush-to-find-a-new-uk-prime-minister/" target="_blank" class="external-link">Forbes</a>
+            &nbsp;•&nbsp;
+            <a href="https://www.theepochtimes.com/article/why-greenland-is-vital-for-us-to-counter-china-and-russia-5971427" target="_blank" class="external-link">Epoch Times</a>
+            &nbsp;•&nbsp;
+            <a href="https://www.benzinga.com/trading-ideas/short-ideas/25/10/48023072/10-defensive-stocks-to-consider-buying-as-experts-get-skittish" target="_blank" class="external-link">Benzinga</a>
+          </div>
+          <div style="font-size:0.78rem;color:var(--dim);font-family:var(--mono);letter-spacing:0.08em;margin-top:10px;opacity:0.65">Approached for expert commentary on geopolitics, energy &amp; capital markets</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <div class="credibility-section">
+          <h3>Key Operators in Libya</h3>
+          <div class="credibility-list">ENI &nbsp;•&nbsp; TotalEnergies &nbsp;•&nbsp; Repsol &nbsp;•&nbsp; Chevron &nbsp;•&nbsp; Occidental Petroleum</div>
+        </div>
+        <div class="cta-box">
+          <div class="cta-t">London Session — May 2026</div>
+          <div class="cta-s">GSCG is convening a closed-door session in London, 13–16 May 2026, with confirmed attendance from a senior Libyan ministerial contact, the NOC Murzuq office, and GSCG's primary in-country operational partner. By introduction only.</div>
+          <button class="cta-btn" onclick="window.open('https://www.gscg.co.uk','_blank')">ENGAGE GSCG · <a href="https://www.gscg.co.uk" target="_blank" class="external-link">www.gscg.co.uk</a></button>
+          <div class="cta-note">CONFIDENTIAL · NDA-GOVERNED · RESPONSE WITHIN 48 HOURS</div>
+      <div style="background:rgba(200,168,75,0.05);border:1px solid rgba(200,168,75,0.2);padding:14px 18px;margin-top:12px">
+        <div style="font-size:9px;letter-spacing:0.16em;text-transform:uppercase;color:var(--gold);font-family:var(--mono);margin-bottom:8px">// ADDITIONAL EXPECTED PARTICIPANTS</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.75">
+          — Institutional capital allocators with emerging market energy exposure<br>
+          — Strategic upstream operators evaluating North Africa entry<br>
+          — Energy-focused advisory and capital structuring groups
+        </div>
+        <div style="font-size:11px;color:var(--dim);font-family:var(--mono);margin-top:10px;letter-spacing:0.06em">This session is being structured as a controlled, high-level engagement environment for qualified counterparties only.</div>
+      </div>
+        </div>
+        <div class="pane">
+          <div class="pane-title">// WHY ACT NOW</div>
+          <div style="display:flex;flex-direction:column;gap:7px">
+            <div class="mi"><div style="color:var(--gold);font-size:11px;font-family:var(--mono);flex-shrink:0">◆</div><div class="body" style="font-size:12px">22 blocks available — first competitive round in 18 years</div></div>
+            <div class="mi"><div style="color:var(--gold);font-size:11px;font-family:var(--mono);flex-shrink:0">◆</div><div class="body" style="font-size:12px">Second tender for southern fields now opening</div></div>
+            <div class="mi"><div style="color:var(--gold);font-size:11px;font-family:var(--mono);flex-shrink:0">◆</div><div class="body" style="font-size:12px">phased execution window before competitive field is established</div></div>
+            <div class="mi"><div style="color:var(--gold);font-size:11px;font-family:var(--mono);flex-shrink:0">◆</div><div class="body" style="font-size:12px">GSCG delivers first introductions within 1 week</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="conf-footer">
+    <div class="cf-left">⬛ Strictly Private &amp; Confidential</div>
+    <div class="cf-right">This document contains proprietary and sensitive information.<br>Unauthorized distribution or disclosure is strictly prohibited.</div>
+  </div>
+</div>
+
+<!-- PROGRESS + DOTS -->
+<div class="progbar" id="prog" style="width:10%"></div>
+<div class="dotrow" id="dots"></div>
+
+<script>
+var cur=0,N=10;
+var slides=document.querySelectorAll('.slide');
+var pills=document.querySelectorAll('.tb-pill');
+
+function buildDots(){
+  var d=document.getElementById('dots');
+  for(var i=0;i<N;i++){
+    var b=document.createElement('button');
+    b.className='dot'+(i===0?' on':'');
+    (function(x){b.onclick=function(){go(x)}})(i);
+    d.appendChild(b);
+  }
+}
+
+function go(n){
+  if(n<0||n>=N)return;
+  slides[cur].className='slide out';
+  var old=cur;
+  setTimeout(function(){slides[old].className='slide'},500);
+  slides[n].className='slide on';
+  pills[cur]&&(pills[cur].className='tb-pill');
+  pills[n]&&(pills[n].className='tb-pill on');
+  document.querySelectorAll('.dot').forEach(function(b,i){b.className='dot'+(i===n?' on':'')});
+  cur=n;
+  document.getElementById('ctr').textContent=String(n+1).padStart(2,'0')+'/'+String(9).padStart(2,'0');
+  document.getElementById('prog').style.width=((n+1)/N*100)+'%';
+  if(n===1&&!window._mapInit){initMap()}
+  if(n===1&&window._mapInit&&_lmap){setTimeout(function(){_lmap.invalidateSize()},300)}
+  if(n===2){setTimeout(initMiniMap,300);setTimeout(initTradingEngine,600)}
+}
+function next(){go(cur+1)}
+function prev(){go(cur-1)}
+window.go=go;
+window.next=next;
+window.prev=prev;
+
+if(!window.navInitialized){
+  window.navInitialized=true;
+  document.getElementById('btn-prev').addEventListener('click',function(){prev()});
+  document.getElementById('btn-next').addEventListener('click',function(){next()});
+  document.getElementById('btn-prev').addEventListener('touchend',function(e){e.preventDefault();prev()},{passive:false});
+  document.getElementById('btn-next').addEventListener('touchend',function(e){e.preventDefault();next()},{passive:false});
+}
+
+document.addEventListener('keydown',function(e){
+  if(e.key==='ArrowRight'||e.key==='ArrowDown')next();
+  if(e.key==='ArrowLeft'||e.key==='ArrowUp')prev();
+});
+var tx=0,ty=0,tTarget=null;
+document.addEventListener('touchstart',function(e){
+  tx=e.touches[0].clientX;
+  ty=e.touches[0].clientY;
+  tTarget=e.target;
+},false);
+document.addEventListener('touchend',function(e){
+  /* Do not hijack swipes that start inside the Leaflet map or scrollable slide content */
+  var inMap=tTarget&&(tTarget.closest('#leafletMap')||tTarget.closest('#mini-map'));
+  /* Do not hijack taps that originate on navigation buttons */
+  var inBtn=tTarget&&(tTarget.closest('[data-nav]')||tTarget.closest('.tb-pill')||tTarget.closest('.dot'));
+  if(inMap||inBtn) return;
+  var dx=e.changedTouches[0].clientX-tx;
+  var dy=Math.abs(e.changedTouches[0].clientY-ty);
+  /* Only trigger on horizontal swipes (dx dominant) */
+  if(Math.abs(dx)>52&&dy<60){dx<0?next():prev()}
+},false);
+
+/* ════ LEAFLET MAP ════ */
+var _lmap=null; /* module-scoped Leaflet instance — set inside initMap */
+var _layerStore={}; /* named layer store for toggles */
+
+var geojsonData={
+  "type":"FeatureCollection",
+  "features":[
+    {"type":"Feature","properties":{"type":"basin","name":"Ghadames Basin","color":"#00c2ff"},"geometry":{"type":"Polygon","coordinates":[[[9,30],[13,30],[14,33],[11,34],[8.5,32],[9,30]]]}},
+    {"type":"Feature","properties":{"type":"basin","name":"Murzuq Basin","color":"#ff6b00"},"geometry":{"type":"Polygon","coordinates":[[[10,24],[15,24],[16,27],[12.5,29],[9.5,27],[10,24]]]}},
+    {"type":"Feature","properties":{"type":"basin","name":"Sirte Basin","color":"#00ff88"},"geometry":{"type":"Polygon","coordinates":[[[16,29.5],[21,29.5],[23,32],[21,34],[17,33],[15.5,31],[16,29.5]]]}},
+    {"type":"Feature","properties":{"type":"oil_field","name":"Sarir Field","info":"Super-giant oil field — Sirte Basin system","importance":"super-giant"},"geometry":{"type":"Point","coordinates":[22.5231,27.6431]}},
+    {"type":"Feature","properties":{"type":"city","name":"Tripoli"},"geometry":{"type":"Point","coordinates":[13.1913,32.8872]}},
+    {"type":"Feature","properties":{"type":"city","name":"Benghazi"},"geometry":{"type":"Point","coordinates":[20.0667,32.1167]}},
+    {"type":"Feature","properties":{"type":"city","name":"Sabha"},"geometry":{"type":"Point","coordinates":[14.4370,27.0377]}},
+    {"type":"Feature","properties":{"type":"tender_block","name":"Murzuq Block M1","status":"Active Licensing","info":"Active licensing block — Murzuq Basin (M1)"},"geometry":{"type":"Polygon","coordinates":[[[12,25],[14,25],[14.5,27],[12.5,27.5],[12,25]]]}},
+    {"type":"Feature","properties":{"type":"terminal","name":"Es Sider Terminal","info":"Major crude export terminal (Sirte Basin)"},"geometry":{"type":"Point","coordinates":[19.6,30.65]}},
+    {"type":"Feature","properties":{"type":"terminal","name":"Ras Lanuf Terminal","info":"Refining & export hub"},"geometry":{"type":"Point","coordinates":[18.47,30.5]}},
+    {"type":"Feature","properties":{"type":"terminal","name":"Zueitina Terminal","info":"Eastern export terminal"},"geometry":{"type":"Point","coordinates":[20.12,30.95]}},
+    {"type":"Feature","properties":{"type":"terminal","name":"Marsa el-Brega","info":"LNG & export hub"},"geometry":{"type":"Point","coordinates":[19.57,30.43]}},
+    {"type":"Feature","properties":{"type":"terminal","name":"Marsa el-Hariga","info":"Eastern export terminal"},"geometry":{"type":"Point","coordinates":[21.75,32.05]}},
+    {"type":"Feature","properties":{"type":"refinery","name":"Zawiya Refinery","info":"Western Libya refining hub"},"geometry":{"type":"Point","coordinates":[12.73,32.75]}},
+    {"type":"Feature","properties":{"type":"refinery","name":"Ras Lanuf Refinery","info":"Central refining complex"},"geometry":{"type":"Point","coordinates":[18.55,30.48]}},
+    {"type":"Feature","properties":{"type":"lng","name":"Brega LNG","info":"Gas processing & LNG export"},"geometry":{"type":"Point","coordinates":[19.62,30.41]}},
+    {"type":"Feature","properties":{"type":"oil_field","name":"Wafa Field","info":"Western gas & condensate field"},"geometry":{"type":"Point","coordinates":[11.5,23.6]}},
+    {"type":"Feature","properties":{"type":"oil_field","name":"Elephant (El Feel)","info":"Major southwestern oil field"},"geometry":{"type":"Point","coordinates":[12.3,25.9]}},
+    {"type":"Feature","properties":{"type":"oil_field","name":"Sharara Field","info":"One of Libya's largest producing fields"},"geometry":{"type":"Point","coordinates":[13.0,26.5]}},
+    {"type":"Feature","properties":{"type":"pipeline","name":"Greenstream Pipeline","info":"Gas export route to Italy"},"geometry":{"type":"LineString","coordinates":[[12.73,32.75],[13.5,34.5],[14.5,36]]}},
+    {"type":"Feature","properties":{"type":"pipeline","name":"Sirte Basin Pipeline Network","info":"Core crude transport system"},"geometry":{"type":"LineString","coordinates":[[22.5,27.6],[20.5,29.5],[19.6,30.65],[18.47,30.5]]}}
+  ]
+};
+
+function initMap(){
+  window._mapInit=true;
+  _lmap=L.map('leafletMap',{
+    center:[27,17],zoom:5,
+    zoomControl:true,
+    attributionControl:false,
+    tap:true,
+    tapTolerance:15,
+    dragging:true,
+    touchZoom:true,
+    scrollWheelZoom:false,
+    doubleClickZoom:true
+  });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+    maxZoom:18,subdomains:'abcd'
+  }).addTo(_lmap);
+
+  function basinStyle(color){
+    return{fillColor:color,fillOpacity:0.18,color:color,weight:2,opacity:0.7,dashArray:null};
+  }
+  function tenderStyle(){
+    return{fillColor:'#c8a84b',fillOpacity:0.12,color:'#c8a84b',weight:2,opacity:0.9,dashArray:'8,5'};
+  }
+
+  /* Store oil field markers for later popup enrichment */
+  var oilMarkers=[];
+
+  L.geoJSON(geojsonData,{
+    style:function(f){
+      if(f.properties.type==='basin') return basinStyle(f.properties.color);
+      if(f.properties.type==='tender_block') return tenderStyle();
+      if(f.properties.type==='pipeline') return{color:'#ff2d55',weight:2,opacity:0.75,dashArray:'6,4'};
+      return{};
+    },
+    onEachFeature:function(f,layer){
+      var p=f.properties;
+      var popHtml='<b>'+p.name+'</b>';
+      if(p.info) popHtml+='<br><span style="color:#8a8474;font-size:11px">'+p.info+'</span>';
+      if(p.type==='basin') popHtml+='<br><span style="color:#8a8474;font-size:11px">Upstream Basin · Active Licensing Round</span>';
+      if(p.type==='tender_block') popHtml+='<br><span style="color:#c8a84b;font-size:11px">Status: '+p.status+'</span>';
+      if(p.type==='pipeline') popHtml+='<br><span style="color:#ff2d55;font-size:11px">Pipeline Infrastructure</span>';
+      layer.bindPopup(popHtml);
+      if(f.geometry.type==='Polygon'){
+        layer.on('mouseover',function(){
+          layer.setStyle({fillOpacity:0.32,weight:3});
+          layer.bringToFront();
+        });
+        layer.on('mouseout',function(){
+          if(p.type==='basin') layer.setStyle(basinStyle(p.color));
+          else if(p.type==='tender_block') layer.setStyle(tenderStyle());
+        });
+        layer.on('click',function(){
+          _lmap.fitBounds(layer.getBounds(),{padding:[30,30],maxZoom:7});
+        });
+      }
+    },
+    pointToLayer:function(f,latlng){
+      var p=f.properties;
+      if(p.type==='city'){
+        var m=L.circleMarker(latlng,{radius:6,fillColor:'#e8c97a',color:'#fff',weight:1.5,fillOpacity:0.95});
+        m.bindPopup('<b>'+p.name+'</b><br><span style="color:#8a8474;font-size:11px">City — NOC/Government Hub</span>');
+        m.bindTooltip(p.name,{permanent:true,direction:'right',className:'leaflet-tooltip-dark',offset:[8,0]});
+        return m;
+      }
+      if(p.type==='oil_field'){
+        var m=L.circleMarker(latlng,{radius:7,fillColor:'#e03030',color:'#ff6060',weight:1.5,fillOpacity:0.9});
+        m._fieldName=p.name;
+        m._fieldInfo=p.info||'Oil field';
+        m.bindPopup('<b>'+p.name+'</b><br><span style="color:#e08080;font-size:11px">'+(p.info||'Oil field')+'</span>');
+        oilMarkers.push(m);
+        return m;
+      }
+      if(p.type==='terminal'){
+        var m=L.circleMarker(latlng,{radius:6,fillColor:'#00ffff',color:'#00cccc',weight:1.5,fillOpacity:0.85});
+        m.bindPopup('<b>'+p.name+'</b><br><span style="color:#00cccc;font-size:11px">'+(p.info||'Export Terminal')+'</span>');
+        return m;
+      }
+      if(p.type==='refinery'){
+        var m=L.circleMarker(latlng,{radius:6,fillColor:'#ff9900',color:'#ffbb44',weight:1.5,fillOpacity:0.9});
+        m.bindPopup('<b>'+p.name+'</b><br><span style="color:#ff9900;font-size:11px">'+(p.info||'Refinery')+'</span>');
+        return m;
+      }
+      if(p.type==='lng'){
+        var m=L.circleMarker(latlng,{radius:6,fillColor:'#ff00ff',color:'#cc44cc',weight:1.5,fillOpacity:0.85});
+        m.bindPopup('<b>'+p.name+'</b><br><span style="color:#ff00ff;font-size:11px">'+(p.info||'LNG Facility')+'</span>');
+        return m;
+      }
+      return L.circleMarker(latlng,{radius:5,fillColor:'#c8a84b',color:'#e8c97a',weight:1,fillOpacity:0.8});
+    }
+  }).addTo(_lmap);
+
+  /* ── AWARDED / UNAWARDED BLOCKS (8 blocks, 2×2° cells across Libya basins) ── */
+  var blocksGJ={
+    type:'FeatureCollection',
+    features:[
+      /* Sirte Basin — awarded */
+      {type:'Feature',properties:{status:'awarded',name:'Block NC-7 — Sirte Basin (Awarded)'},geometry:{type:'Polygon',coordinates:[[[17,30],[19,30],[19,32],[17,32],[17,30]]]}},
+      {type:'Feature',properties:{status:'awarded',name:'Block NC-8 — Sirte Basin (Awarded)'},geometry:{type:'Polygon',coordinates:[[[19,30],[21,30],[21,32],[19,32],[19,30]]]}},
+      /* Eastern Sirte — unawarded */
+      {type:'Feature',properties:{status:'unawarded',name:'Block NC-9 — Open Tender (Sirte)'},geometry:{type:'Polygon',coordinates:[[[21,29],[23,29],[23,31],[21,31],[21,29]]]}},
+      {type:'Feature',properties:{status:'unawarded',name:'Block NC-10 — Open Tender (Eastern)'},geometry:{type:'Polygon',coordinates:[[[23,28],[25,28],[25,30],[23,30],[23,28]]]}},
+      /* Ghadames Basin */
+      {type:'Feature',properties:{status:'awarded',name:'Block G-2 — Ghadames (Awarded)'},geometry:{type:'Polygon',coordinates:[[[9,29],[11,29],[11,31],[9,31],[9,29]]]}},
+      {type:'Feature',properties:{status:'unawarded',name:'Block G-4 — Open Tender (Ghadames)'},geometry:{type:'Polygon',coordinates:[[[11,29],[13,29],[13,31],[11,31],[11,29]]]}},
+      /* Murzuq Basin */
+      {type:'Feature',properties:{status:'awarded',name:'Block M-6 — Murzuq (Awarded)'},geometry:{type:'Polygon',coordinates:[[[13,24],[15,24],[15,26],[13,26],[13,24]]]}},
+      {type:'Feature',properties:{status:'unawarded',name:'Block M-8 — Open Tender (Murzuq)'},geometry:{type:'Polygon',coordinates:[[[15,24],[17,24],[17,26],[15,26],[15,24]]]}}
+    ]
+  };
+  var blocksLayer=L.geoJSON(blocksGJ,{
+    style:function(f){
+      var aw=f.properties.status==='awarded';
+      return{fillColor:aw?'#2ecc71':'#e74c3c',fillOpacity:0.18,color:aw?'#2ecc71':'#e74c3c',weight:1.5,dashArray:aw?null:'7,4'};
+    },
+    onEachFeature:function(f,layer){
+      var p=f.properties;
+      var aw=p.status==='awarded';
+      var col=aw?'#2ecc71':'#e74c3c';
+      var statusLabel=aw?'Awarded — Under Development':'Open Tender — Available';
+      layer.bindPopup(
+        '<b style="color:'+col+'">'+p.name+'</b>'+
+        '<br><span style="color:'+col+';font-size:11px">'+statusLabel+'</span>'+
+        '<br><span style="color:#8a8474;font-size:10px">NOC Block · Libya Licensing Round 2025–26</span>'
+      );
+      layer.on('mouseover',function(){layer.setStyle({fillOpacity:0.38});layer.bringToFront()});
+      layer.on('mouseout',function(){blocksLayer.resetStyle(layer)});
+    }
+  }).addTo(_lmap);
+  _layerStore['blocks-layer']=blocksLayer;
+
+  /* ── AIRPORTS ── */
+  var airportFeatures=[
+    {name:'Tripoli Mitiga Airport',latlng:[32.894,13.276]},
+    {name:'Benina International Airport',latlng:[32.096,20.270]},
+    {name:'Misrata Airport',latlng:[32.325,15.060]},
+    {name:'Sabha Airport',latlng:[26.987,14.472]}
+  ];
+  var airportMarkers=[];
+  airportFeatures.forEach(function(ap){
+    var m=L.marker(ap.latlng,{
+      icon:L.divIcon({html:'<div style="font-size:14px;line-height:1;color:#a0c8ff;text-shadow:0 0 5px rgba(0,0,0,0.95);cursor:default">✈</div>',className:'',iconSize:[18,18],iconAnchor:[9,9]})
+    });
+    m.bindPopup('<b>'+ap.name+'</b><br><span style="color:#a0c8ff;font-size:11px">Airport — Logistics Access Point</span>');
+    m.addTo(_lmap);
+    airportMarkers.push(m);
+  });
+  /* Store as a layer group for toggling */
+  _layerStore['airports-layer']=L.layerGroup(airportMarkers);
+  /* Markers already added individually above; remove them so the layerGroup is the authority */
+  airportMarkers.forEach(function(m){_lmap.removeLayer(m)});
+  _layerStore['airports-layer'].addTo(_lmap);
+
+  /* ── LEGEND ADDITIONS ── */
+  var mf=document.querySelector('.map-footer');
+  if(mf){
+    [{html:'<div class="ml-dot" style="background:#2ecc71"></div>Awarded Block'},
+     {html:'<div class="ml-dot" style="background:#e74c3c"></div>Open Tender'},
+     {html:'<span style="font-size:12px;color:#a0c8ff;line-height:1">✈</span>&nbsp;Airport'}
+    ].forEach(function(item){
+      var d=document.createElement('div');d.className='ml-item';d.innerHTML=item.html;mf.appendChild(d);
+    });
+  }
+
+  /* ── OIL FIELD PRICING ENRICHMENT ── */
+  getBrentPrice().then(function(brent){
+    oilMarkers.forEach(function(m){
+      var fname=m._fieldName||'';
+      /* Try exact match first, then partial */
+      var term=fieldToTerminal[fname]||null;
+      if(!term){
+        /* fallback: scan keys for partial match */
+        Object.keys(fieldToTerminal).forEach(function(k){
+          if(fname.indexOf(k)!==-1||k.indexOf(fname)!==-1) term=fieldToTerminal[k];
+        });
+      }
+      if(!term) term='Es Sider'; /* default export terminal */
+      var diff=differentials[term]||0;
+      var price=+(brent+diff).toFixed(2);
+      var prod=fieldProduction[fname]||fieldProduction[fname.replace(' Field','').trim()]||100000;
+      var val=Math.round(price*prod).toLocaleString();
+      /* Store on marker for later reference */
+      m._trading={brent:brent,term:term,price:price,prod:prod,val:val};
+      /* Build popup entirely from scratch — no string splitting */
+      var info=m._fieldInfo||'Oil field';
+      m.setPopupContent(
+        '<b style="color:#c8a84b;font-size:11px;letter-spacing:0.08em;font-family:monospace">'+fname.toUpperCase()+'</b>'+
+        '<br><span style="color:#8a8474;font-size:11px">'+info+'</span>'+
+        '<hr style="border:none;border-top:1px solid #252540;margin:7px 0"/>'+
+        '<div style="font-size:11px;font-family:monospace;line-height:1.8;color:#8a8474">'+
+        '<span>Brent</span><span style="float:right;color:#e8e4d8">$'+brent.toFixed(2)+' /bbl</span><br>'+
+        '<span>Terminal</span><span style="float:right;color:#e8e4d8">'+term+'</span><br>'+
+        '<span>Crude price</span><span style="float:right;color:#c8a84b;font-weight:600">$'+price+' /bbl</span><br>'+
+        '<span>Est. daily value</span><span style="float:right;color:#c8a84b;font-weight:600">$'+val+'</span>'+
+        '</div>'
+      );
+    });
+  });
+
+  /* ── TOOLTIP STYLE ── */
+  var ts=document.createElement('style');
+  ts.textContent='.leaflet-tooltip-dark{background:#0f0f1e;border:1px solid #252540;color:#e8e4d8;font-family:"JetBrains Mono",monospace;font-size:11px;letter-spacing:0.06em;padding:3px 8px;box-shadow:none}.leaflet-tooltip-dark::before{display:none}';
+  document.head.appendChild(ts);
+
+  _lmap.invalidateSize();
+}
+
+/* ════ INTEL SPIDER WEB ════ */
+var nodeData=[
+  {id:'nn0',info:'TRIPOLI NOC — Active relationships with senior figures across the NOC, Ministry of Oil & Gas, and subsidiary operators for exploration and new partnership approval.'},
+  {id:'nn1',info:'SABHA CORRIDOR — Ground-level contacts across service companies, NOC investment vehicles, and field operators. Real-time intelligence on the southern tender pipeline.'},
+  {id:'nn2',info:'CYRENAICA-SIRTE ARC — Early visibility on block awards, operator movements, and competitive dynamics before market. Eastern access via Haftar relationships.'},
+  {id:'nn3',info:'LONDON — Senior figures who shape Libya\'s commercial architecture operate here. The real deals are structured in London, not Tripoli.'},
+  {id:'nn4',info:'GNU POLITICAL — Direct access to Government of National Unity insiders. Early-warning on policy shifts, NOC leadership movements, and sovereign risk.'},
+  {id:'nn5',info:'OPERATIONAL ACCESS (DISCLOSED UNDER NDA TO QUALIFYING COUNTERPARTIES) — Libyan investment group with upstream exposure; NOC-linked development vehicle (Sabha region); exposure to Sirte basin producing asset; NOC–IOC JV participation; operational services for Eni, TotalEnergies, Chevron, Occidental Petroleum; access to secondary NOC tender allocations.'}
+];
+
+function selNode(i){
+  document.querySelectorAll('.inode').forEach(function(n,j){
+    n.className=n.className.replace(' active','')+(j===i?' active':'');
+  });
+  nodeData.forEach(function(nd,j){
+    var g=document.getElementById(nd.id);
+    if(g){var c=g.querySelector('circle');if(c)c.style.strokeWidth=j===i?'2.5':'1'}
+  });
+  var info=document.getElementById('netInfo');
+  info.textContent=nodeData[i].info;
+}
+
+buildDots();
+
+/* ═══════════════════════════════════════
+   TRADING ENGINE
+═══════════════════════════════════════ */
+var _brentCache=null;
+
+async function getBrentPrice(){
+  if(_brentCache&&(Date.now()-_brentCache.ts<300000)) return _brentCache.val;
+  try{
+    var r=await fetch('https://api.tradingeconomics.com/markets/commodities?c=guest:guest');
+    var d=await r.json();
+    var b=d.find(function(x){return x.Symbol==='UKOIL'});
+    var v=b?b.Last:97;
+    _brentCache={val:v,ts:Date.now()};
+    return v;
+  }catch(e){return 97}
+}
+
+var differentials={
+  'Es Sider':0.2,'Sharara':2.0,'Sarir':2.5,'Mesla':3.0,
+  'Ras Lanuf':1.0,'Zawiya':2.0,'Hariga':2.5,
+  'Elephant (El Feel)':1.8,'Wafa Field':1.5
+};
+
+var fieldToTerminal={
+  'Sharara Field':'Zawiya',
+  'Sharara':'Zawiya',
+  'Elephant (El Feel)':'Zawiya',
+  'El Feel':'Zawiya',
+  'Sarir Field':'Hariga',
+  'Sarir':'Hariga',
+  'Wafa Field':'Ras Lanuf',
+  'Wafa':'Ras Lanuf'
+};
+
+var fieldProduction={
+  'Sharara Field':300000,
+  'Sharara':300000,
+  'Elephant (El Feel)':130000,
+  'El Feel':130000,
+  'Sarir Field':200000,
+  'Sarir':200000,
+  'Wafa Field':60000,
+  'Wafa':60000
+};
+
+async function initTradingEngine(){
+  var brent=await getBrentPrice();
+  var bEl=document.getElementById('brentDisplay');
+  if(bEl) bEl.textContent='$'+brent.toFixed(2)+' /bbl';
+
+  var tbl=document.getElementById('fieldPriceTable');
+  if(!tbl) return;
+  tbl.innerHTML='';
+  var fields=['Sharara Field','Elephant (El Feel)','Sarir Field','Wafa Field'];
+  fields.forEach(function(fname){
+    var term=fieldToTerminal[fname]||'—';
+    var diff=differentials[term]||0;
+    var price=(brent+diff).toFixed(2);
+    var prod=fieldProduction[fname]||100000;
+    var val=Math.round(price*prod).toLocaleString();
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;justify-content:space-between;font-size:10px;font-family:var(--mono);color:var(--muted);padding:3px 0;border-bottom:1px solid var(--wire)';
+    row.innerHTML='<span style="color:var(--text)">'+fname.replace(' Field','')+'</span><span style="color:var(--gold)">$'+price+'</span><span style="color:var(--dim)">$'+val+'/d</span>';
+    tbl.appendChild(row);
+  });
+}
+
+/* ═══════════════════════════════════════
+   MINI MAP (ENTRY STRATEGY SLIDE)
+═══════════════════════════════════════ */
+var miniMapLoaded=false;
+
+function initMiniMap(){
+  if(miniMapLoaded) return;
+  var el=document.getElementById('mini-map');
+  if(!el) return;
+  miniMapLoaded=true;
+
+  var mmap=L.map('mini-map',{
+    center:[28,17],zoom:4.4,
+    zoomControl:false,attributionControl:false,
+    dragging:false,scrollWheelZoom:false,doubleClickZoom:false,
+    boxZoom:false,keyboard:false,tap:false
+  });
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{
+    maxZoom:18,subdomains:'abcd'
+  }).addTo(mmap);
+
+  /* Eastern brownfield zone (primary — green) */
+  L.polygon([[30,20],[33,20],[33,24],[30,24]],{
+    fillColor:'#2ecc71',fillOpacity:0.25,color:'#2ecc71',weight:1.5,dashArray:'6,4'
+  }).bindTooltip('Eastern Brownfield (Primary)',{className:'leaflet-tooltip-dark'}).addTo(mmap);
+
+  /* Southern basin (secondary — gold) */
+  L.polygon([[25,12],[27,12],[28,16],[26,17],[24,15]],{
+    fillColor:'#c8a84b',fillOpacity:0.2,color:'#c8a84b',weight:1.5,dashArray:'6,4'
+  }).bindTooltip('Southern Basin (Secondary)',{className:'leaflet-tooltip-dark'}).addTo(mmap);
+
+  /* Western corridor (parallel — dim) */
+  L.polygon([[29,9],[33,9],[33,13],[30,14],[28,12]],{
+    fillColor:'#7a7060',fillOpacity:0.15,color:'#7a7060',weight:1,dashArray:'4,5'
+  }).bindTooltip('Western Corridor (Parallel)',{className:'leaflet-tooltip-dark'}).addTo(mmap);
+
+  mmap.invalidateSize();
+}
+
+/* ═══════════════════════════════════════
+   MAP LAYER TOGGLES
+═══════════════════════════════════════ */
+function toggleMapLayer(layerId,btnId){
+  var btn=document.getElementById(btnId);
+  if(!_lmap) return;
+  var layer=_layerStore[layerId];
+  if(!layer) return;
+  if(_lmap.hasLayer(layer)){
+    _lmap.removeLayer(layer);
+    if(btn) btn.className='map-toggle-btn';
+  } else {
+    _lmap.addLayer(layer);
+    if(btn) btn.className='map-toggle-btn active';
+  }
+}
+</script>
+</div>
+
+<script>
+function checkPassword(){
+  var input=document.getElementById('password-input').value;
+  if(input==='Aethon'){
+    document.getElementById('dealroom-overlay').style.display='none';
+  } else {
+    document.getElementById('error-msg').innerText='Access denied';
+  }
+}
+document.addEventListener("DOMContentLoaded",function(){
+  var input=document.getElementById('password-input');
+  if(input){
+    input.addEventListener('keypress',function(e){
+      if(e.key==='Enter') checkPassword();
+    });
+  }
+});
+</script>
+
+<script>
+/* Mobile-only ghost link removal */
+document.addEventListener("DOMContentLoaded", function () {
+  if (window.innerWidth > 768) return;
+  document.querySelectorAll("a").forEach(function(a) {
+    var href = a.getAttribute("href");
+    if (!href || href === "#" || href.indexOf("javascript") !== -1) {
+      a.removeAttribute("href");
+      a.style.pointerEvents = "none";
+    }
+  });
+});
+</script>
+</body>
+</html>
